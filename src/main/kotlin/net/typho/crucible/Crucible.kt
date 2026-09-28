@@ -6,10 +6,11 @@ import net.typho.crucible.deps.DependencyFinder
 object Crucible {
     @JvmStatic
     fun main(args: Array<String>) {
-        val finder = DependencyFinder.Maven("https://typho.net/maven", DependencyFinder.Maven.MAVEN_CENTRAL)
-        finder.find(DependencyCoordinates("net.typho:data_util:1.3.4"))
-        finder.find(DependencyCoordinates("net.typho:typho_publish:1.0.3"))
-        finder.find(DependencyCoordinates("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.0"))
+        DependencyFinder.Maven("https://typho.net/maven", DependencyFinder.MAVEN_CENTRAL).use {
+            println(it.find(DependencyCoordinates("net.typho:data_util:1.3.4")))
+            println(it.find(DependencyCoordinates("net.typho:typho_publish:1.0.3")))
+            println(it.find(DependencyCoordinates("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.0")))
+        }
 
         /*
         val compiler = K2JVMCompiler()

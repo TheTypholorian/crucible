@@ -11,8 +11,10 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.0")
+    implementation("net.typho:data_util:1.3.4")
     implementation("net.typho:misc_util:1.0.0")
+
+    implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.0")
 
     implementation("org.apache.maven:maven-model:3.9.11")
     implementation("org.apache.maven.resolver:maven-resolver-api:2.0.21")

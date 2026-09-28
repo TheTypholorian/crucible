@@ -1,16 +1,14 @@
 package net.typho.crucible
 
-interface Cacheable<S : Cacheable<S>> {
-    @Suppress("UNCHECKED_CAST")
-    fun canReuseCast(old: Cacheable<*>): Boolean {
-        return try {
-            canReuse(old as S)
-        } catch (e: ClassCastException) {
-            false
-        }
+interface Cacheable {
+    fun canReuse(old: Cacheable): Boolean {
+        return this == old
     }
 
-    fun canReuse(old: S): Boolean {
-        return this == old
+    companion object {
+        @JvmStatic
+        fun canReuse(new: Any, old: Any): Boolean {
+            return if (new is Cacheable && old is Cacheable) new.canReuse(old) else new == old
+        }
     }
 }
