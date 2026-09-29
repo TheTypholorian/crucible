@@ -1,8 +1,45 @@
 package net.typho.crucible
 
+import net.typho.data_util.impl.PropertiesFormat
 import java.nio.file.Path
+import java.nio.file.Paths
+import kotlin.io.path.absolute
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.exists
+import kotlin.io.path.name
+import kotlin.io.path.readText
 
 object Config {
+    init {
+        System.getProperty("crucible.config_files")?.split(',')?.forEach { loadConfig(Paths.get(it), true) }
+    }
+
+    fun loadConfig(path: Path, overwrite: Boolean = true) {
+        if (path.exists()) {
+            LOG.info("Loading crucible config from ${path.absolutePathString()}")
+            val properties = PropertiesFormat().read(path.readText())
+            val target = System.getProperties()
+
+            properties.forEach { (key, value) ->
+                if (overwrite) {
+                    target.put(key, value)?.let { old ->
+                        LOG.info("Property $key was already set to $old but ${path.name} set it to $value")
+                    }
+                } else {
+                    target.putIfAbsent(key, value)
+                }
+            }
+        }
+    }
+
+    @JvmField
+    val PROJECT_ROOT = (System.getProperty("crucible.project_root")?.let { Path.of(it) } ?: Path.of("")).absolute()
+
+    init {
+        loadConfig(PROJECT_ROOT.resolve(".crucible", "config.properties"), false)
+        loadConfig(PROJECT_ROOT.resolve("project.properties"), false)
+    }
+
     @JvmField
     val GLOBAL_FOLDER = System.getProperty("crucible.global_folder")?.let { Path.of(it) } ?: Path.of(System.getProperty("user.home")).resolve(".crucible")
     @JvmField
@@ -10,5 +47,7 @@ object Config {
     @JvmField
     val MAVEN_CACHE_FOLDER = CACHE_FOLDER.resolve("maven")
     @JvmField
-    val LOG_IMPL_CLASS: String? = System.getProperty("crucible.log_impl")
+    val CONFIG_SCRIPT_FILE = System.getProperty("crucible.config_script")?.let { Path.of(it).absolute() } ?: PROJECT_ROOT.resolve("crucible.kts")
+    @JvmField
+    val KOTLIN_VERSION = System.getProperty("crucible.kotlin_version") ?: "2.4.0"
 }

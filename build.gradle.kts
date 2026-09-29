@@ -1,5 +1,10 @@
+import org.jetbrains.gradle.ext.Application
+import org.jetbrains.gradle.ext.runConfigurations
+import org.jetbrains.gradle.ext.settings
+
 plugins {
     kotlin("jvm") version "2.4.0"
+    id("org.jetbrains.gradle.plugin.idea-ext") version "1.4.1"
 }
 
 group = "net.typho"
@@ -15,6 +20,9 @@ dependencies {
     implementation("net.typho:misc_util:1.0.0")
 
     implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.0")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-common:2.4.0")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:2.4.0")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.4.0")
 
     implementation("org.apache.maven:maven-model:3.9.11")
     implementation("org.apache.maven.resolver:maven-resolver-api:2.0.21")
@@ -34,5 +42,19 @@ tasks.jar {
         attributes(
             "Main-Class" to "net.typho.crucible.Crucible"
         )
+    }
+}
+
+idea {
+    project {
+        settings {
+            runConfigurations {
+                create("Crucible", Application::class.java) {
+                    mainClass = "net.typho.crucible.Crucible"
+                    moduleName = "crucible.main"
+                    jvmArgs = "-Dcrucible.project_root=${file("test").absolutePath}"
+                }
+            }
+        }
     }
 }

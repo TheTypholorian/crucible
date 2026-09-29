@@ -2,14 +2,23 @@
 package net.typho.crucible
 
 import net.typho.misc_util.KtServiceLoader
+import org.slf4j.ILoggerFactory
+import org.slf4j.Logger
+import org.slf4j.Marker
+import org.slf4j.MarkerFactory
+import org.slf4j.event.Level
+import org.slf4j.helpers.AbstractLogger
+import org.slf4j.helpers.BasicMDCAdapter
+import org.slf4j.helpers.MessageFormatter
+import org.slf4j.spi.MDCAdapter
+import org.slf4j.spi.SLF4JServiceProvider
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
-import java.text.NumberFormat
 import kotlin.math.floor
 
 @JvmField
 @get:JvmName("INSTANCE")
-val LOG = Config.LOG_IMPL_CLASS?.let { KtServiceLoader.load(ILog::class.java, listOf(it)).single().get() } ?: LogImpl
+val LOG = KtServiceLoader.load(ILog::class.java).firstOrNull()?.get() ?: LogImpl
 
 fun Throwable.fullToString(): String {
     val out = ByteArrayOutputStream()
@@ -32,11 +41,17 @@ interface ILog {
 
     fun info(msg: Any?, t: Throwable) = info(msg.toString() + "\n" + t.fullToString())
 
+    fun warn(msg: String)
+
+    fun warn(msg: Any?) = warn(msg.toString())
+
+    fun warn(msg: Any?, t: Throwable) = warn(msg.toString() + "\n" + t.fullToString())
+
     fun error(msg: String)
 
-    fun error(msg: Any?) = info(msg.toString())
+    fun error(msg: Any?) = error(msg.toString())
 
-    fun error(msg: Any?, t: Throwable) = info(msg.toString() + "\n" + t.fullToString())
+    fun error(msg: Any?, t: Throwable) = error(msg.toString() + "\n" + t.fullToString())
 
     fun status(unit: String, max: Float, scale: Float = 1f, width: Int = 20): StatusUpdater
 
@@ -46,6 +61,10 @@ interface ILog {
 private object LogImpl : ILog {
     override fun info(msg: String) {
         println(msg)
+    }
+
+    override fun warn(msg: String) {
+        info("\u001b[33m$msg\u001b[0m")
     }
 
     override fun error(msg: String) {
@@ -87,5 +106,73 @@ private object LogImpl : ILog {
                 progress = max
             }
         }
+    }
+}
+
+class SLF4JServiceProviderImpl : SLF4JServiceProvider, ILoggerFactory {
+    private val mdc = BasicMDCAdapter()
+
+    override fun getLoggerFactory() = this
+
+    override fun getMarkerFactory() = MarkerFactory.getIMarkerFactory()
+
+    override fun getMDCAdapter(): MDCAdapter = mdc
+
+    override fun getRequestedApiVersion() = "2.0.99"
+
+    override fun initialize() = Unit
+
+    override fun getLogger(name: String): Logger = object : AbstractLogger() {
+        override fun getFullyQualifiedCallerName() = null
+
+        override fun handleNormalizedLoggingCall(
+            level: Level,
+            marker: Marker?,
+            messagePattern: String,
+            arguments: Array<out Any?>?,
+            throwable: Throwable?
+        ) {
+            var msg = if (arguments == null) {
+                messagePattern
+            } else {
+                val format = if (throwable == null) {
+                    MessageFormatter.arrayFormat(messagePattern, arguments)
+                } else {
+                    MessageFormatter.arrayFormat(messagePattern, arguments, throwable)
+                }
+
+                if (format.throwable == null) format.message else format.message + "\n" + format.throwable.fullToString()
+            }
+
+            if (marker != null) {
+                msg = marker.toString() + msg
+            }
+
+            when (level) {
+                Level.ERROR -> LOG.error(msg)
+                Level.WARN -> LOG.warn(msg)
+                else -> LOG.info(msg)
+            }
+        }
+
+        override fun isTraceEnabled() = true
+
+        override fun isTraceEnabled(marker: Marker) = true
+
+        override fun isDebugEnabled() = true
+
+        override fun isDebugEnabled(marker: Marker) = true
+
+        override fun isInfoEnabled() = true
+
+        override fun isInfoEnabled(marker: Marker) = true
+
+        override fun isWarnEnabled() = true
+
+        override fun isWarnEnabled(marker: Marker) = true
+
+        override fun isErrorEnabled() = true
+
+        override fun isErrorEnabled(marker: Marker) = true
     }
 }
