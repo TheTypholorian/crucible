@@ -19,10 +19,10 @@ dependencies {
     implementation("net.typho:data_util:1.3.4")
     implementation("net.typho:misc_util:1.0.0")
 
-    implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.0")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-common:2.4.0")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:2.4.0")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.4.0")
+    implementation(kotlin("compiler-embeddable"))
+    implementation(kotlin("scripting-common"))
+    implementation(kotlin("scripting-jvm"))
+    implementation(kotlin("scripting-jvm-host"))
 
     implementation("org.apache.maven:maven-model:3.9.11")
     implementation("org.apache.maven.resolver:maven-resolver-api:2.0.21")
@@ -34,7 +34,7 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(21)
 }
 
 tasks.jar {
@@ -52,7 +52,7 @@ idea {
                 create("Crucible", Application::class.java) {
                     mainClass = "net.typho.crucible.Crucible"
                     moduleName = "crucible.main"
-                    jvmArgs = "-Dcrucible.project_root=${file("test").absolutePath}"
+                    jvmArgs = "-Dcrucible.project_root=${file("test").absolutePath}\n--sun-misc-unsafe-memory-access=allow"
                 }
             }
         }

@@ -75,7 +75,7 @@ private object LogImpl : ILog {
 
     override fun debug(msg: String) {
         if (Config.DEBUG) {
-            debug(msg)
+            info(msg)
         }
     }
 
