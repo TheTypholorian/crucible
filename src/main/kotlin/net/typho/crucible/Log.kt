@@ -47,6 +47,12 @@ interface ILog {
 
     fun warn(msg: Any?, t: Throwable) = warn(msg.toString() + "\n" + t.fullToString())
 
+    fun debug(msg: String)
+
+    fun debug(msg: Any?) = debug(msg.toString())
+
+    fun debug(msg: Any?, t: Throwable) = debug(msg.toString() + "\n" + t.fullToString())
+
     fun error(msg: String)
 
     fun error(msg: Any?) = error(msg.toString())
@@ -64,7 +70,13 @@ private object LogImpl : ILog {
     }
 
     override fun warn(msg: String) {
-        info("\u001b[33m$msg\u001b[0m")
+        info("\u001b[93m$msg\u001b[0m")
+    }
+
+    override fun debug(msg: String) {
+        if (Config.DEBUG) {
+            debug(msg)
+        }
     }
 
     override fun error(msg: String) {
@@ -151,17 +163,18 @@ class SLF4JServiceProviderImpl : SLF4JServiceProvider, ILoggerFactory {
             when (level) {
                 Level.ERROR -> LOG.error(msg)
                 Level.WARN -> LOG.warn(msg)
+                Level.DEBUG -> LOG.debug(msg)
                 else -> LOG.info(msg)
             }
         }
 
-        override fun isTraceEnabled() = true
+        override fun isTraceEnabled() = Config.DEBUG
 
-        override fun isTraceEnabled(marker: Marker) = true
+        override fun isTraceEnabled(marker: Marker) = Config.DEBUG
 
-        override fun isDebugEnabled() = true
+        override fun isDebugEnabled() = Config.DEBUG
 
-        override fun isDebugEnabled(marker: Marker) = true
+        override fun isDebugEnabled(marker: Marker) = Config.DEBUG
 
         override fun isInfoEnabled() = true
 

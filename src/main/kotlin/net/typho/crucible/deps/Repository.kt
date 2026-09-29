@@ -7,25 +7,30 @@ import org.eclipse.aether.resolution.ArtifactResolutionException
 import org.eclipse.aether.transfer.ArtifactNotFoundException
 import java.nio.file.Path
 
-interface DependencyFinder : AutoCloseable {
+interface Repository {
     companion object {
-        const val MAVEN_CENTRAL = "https://repo1.maven.org/maven2/"
+        const val MAVEN_CENTRAL = "https://repo1.maven.org/maven2"
+        const val TYPHO_NET = "https://typho.net/maven"
+
+        @JvmStatic
+        fun Iterable<Repository>.find(dep: DependencyCoordinates): Path? {
+            return firstNotNullOfOrNull { it.find(dep) }
+        }
     }
 
     fun find(dep: DependencyCoordinates): Path?
 
-    override fun close() {
-    }
+    abstract override fun toString(): String
 
     class Maven(
         @JvmField
-        val repositories: List<RemoteRepository>
-    ) : DependencyFinder {
-        constructor(vararg repositories: String) : this(repositories.map { RemoteRepository.Builder(null, "default", it).build() })
+        val repo: RemoteRepository
+    ) : Repository {
+        constructor(repository: String) : this(RemoteRepository.Builder(null, "default", repository).build())
 
         override fun find(dep: DependencyCoordinates): Path? {
             return try {
-                MavenCache.system.resolveArtifact(MavenCache.session, ArtifactRequest(DefaultArtifact(dep.group, dep.artifact, dep.classifier, dep.extension, dep.version), repositories, null)).artifact?.path
+                MavenCache.system.resolveArtifact(MavenCache.session, ArtifactRequest(DefaultArtifact(dep.group, dep.artifact, dep.classifier, dep.extension, dep.version), listOf(repo), null)).artifact?.path
             } catch (e: ArtifactResolutionException) {
                 if (e.result.exceptions.all { it is ArtifactNotFoundException }) {
                     null
@@ -33,6 +38,10 @@ interface DependencyFinder : AutoCloseable {
                     throw e
                 }
             }
+        }
+
+        override fun toString(): String {
+            return repo.url
         }
     }
 }

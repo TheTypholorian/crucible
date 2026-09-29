@@ -1,5 +1,9 @@
+import net.typho.data_util.impl.JsonFormat
+
 object Test {
     init {
-        println("yay! it works! ${10.times(20)}")
+        var v = 10.times(20)
+        println("yay! it works! $v")
+        println(JsonFormat().read("{\"abc\": 123}"))
     }
 }
