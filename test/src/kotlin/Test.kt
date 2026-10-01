@@ -7,5 +7,6 @@ object Test {
         println("yay! it works! $v")
         println(JsonFormat().read("{\"abc\": 123}"))
         SideClass.side()
+        JavaClass.sayHi()
     }
 }

@@ -5,6 +5,8 @@ import net.typho.crucible.deps.Repositories
 import net.typho.crucible.deps.Repository.Companion.find
 import net.typho.crucible.error.CompilationException
 import net.typho.crucible.error.ConfigScriptException
+import net.typho.crucible.error.DependencyNotFoundException
+import net.typho.crucible.error.ToolNotFoundException
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
@@ -16,6 +18,7 @@ import java.io.PrintStream
 import java.nio.file.Path
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
+import javax.tools.ToolProvider
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
@@ -70,17 +73,17 @@ object Crucible {
 
         val build = Config.PROJECT_ROOT.resolve("build")
         val buildClasses = build.resolve("classes")
-        val buildJars = build.resolve("jars")
         build.deleteRecursively() // TODO
 
         val classPath = Classpath(dependencies.mapTo(mutableSetOf()) {
             repositories.find(it)?.path?.absolutePathString()
-                ?: throw NullPointerException("Cannot find dependency $it, searched in repositories:\n\t${repositories.joinToString(separator = "\n\t")}")
-        })
+                ?: throw DependencyNotFoundException("Cannot find dependency $it, searched in repositories:\n\t${repositories.joinToString(separator = "\n\t")}")
+        }) + buildClasses
         LOG.debug("Class path: ${classPath.entries}")
 
         val args = compiler.createArguments().apply {
             freeArgs = listOf(Config.PROJECT_ROOT.resolve("src/kotlin/").toString())
+            javaSourceRoots = arrayOf(Config.PROJECT_ROOT.resolve("src/java/").toString())
             destination = buildClasses.toString()
             jvmTarget = "21"
             classpath = classPath.toString()
@@ -104,6 +107,20 @@ object Crucible {
             ExitCode.OOM_ERROR -> throw OutOfMemoryError()
         }
 
+        val javaCompiler = ToolProvider.getSystemJavaCompiler() ?: throw ToolNotFoundException("Missing system java compiler, this usually means you are running with a JRE rather than a JDK.")
+        val manager = javaCompiler.getStandardFileManager(null, null, null) // TODO diagnostics
+        val files = manager.getJavaFileObjectsFromPaths(Config.PROJECT_ROOT.resolve("src/java/").walk().toList())
+        val options = listOf(
+            "-d", buildClasses.absolutePathString(),
+            "-cp", classPath.toString()
+        )
+        val javaSuccess = javaCompiler.getTask(null, manager, null, options, null, files).call()
+
+        if (!javaSuccess) {
+            TODO()
+        }
+
+        /*
         val projectJar = buildJars.resolve("project.jar")
         projectJar.parent.createDirectories()
         JarOutputStream(projectJar.outputStream()).use { jar ->
@@ -122,15 +139,16 @@ object Crucible {
                 }
             }
         }
+         */
 
         val process = ProcessBuilder(
             "java",
             "-cp",
-            (classPath + projectJar).toString(),
+            classPath.toString(),
             mainClass
             // program args
         )
-        LOG.debug("Launching jar, command: ${process.command().joinToString(separator = " ") { if (it.any { it.isWhitespace() }) "\"$it\"" else it }}")
+        LOG.debug("Launching process, command: ${process.command().joinToString(separator = " ") { if (it.any { it.isWhitespace() }) "\"$it\"" else it }}")
         val exitCode = process.inheritIO()
             .start()
             .waitFor()
