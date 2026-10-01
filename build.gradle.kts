@@ -17,6 +17,7 @@ repositories {
 
 dependencies {
     implementation("net.typho:data_util:1.3.4")
+    implementation("net.typho:asm_util:1.3.5")
     implementation("net.typho:misc_util:1.0.0")
 
     implementation(kotlin("compiler-embeddable"))

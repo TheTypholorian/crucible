@@ -5,7 +5,7 @@ import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 
 @JvmInline
-value class Classpath(val entries: List<String>) {
+value class Classpath(val entries: Set<String>) {
     operator fun plus(path: String) = Classpath(entries + path)
 
     operator fun plus(path: Path) = plus(path.absolutePathString())

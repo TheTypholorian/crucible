@@ -2,6 +2,9 @@
 package net.typho.crucible
 
 import net.typho.misc_util.KtServiceLoader
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.slf4j.ILoggerFactory
 import org.slf4j.Logger
 import org.slf4j.Marker

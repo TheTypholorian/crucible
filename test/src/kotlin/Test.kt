@@ -6,5 +6,6 @@ object Test {
         var v = 10.times(20)
         println("yay! it works! $v")
         println(JsonFormat().read("{\"abc\": 123}"))
+        SideClass.side()
     }
 }

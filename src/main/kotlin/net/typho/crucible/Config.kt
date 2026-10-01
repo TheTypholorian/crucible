@@ -35,8 +35,7 @@ object Config {
     val PROJECT_ROOT = (System.getProperty("crucible.project_root")?.let { Path.of(it) } ?: Path.of("")).absolute()
 
     init {
-        loadConfig(PROJECT_ROOT.resolve(".crucible/config.properties"), false)
-        loadConfig(PROJECT_ROOT.resolve("project.properties"), false)
+        loadConfig(PROJECT_ROOT.resolve("crucible.properties"), false)
     }
 
     @JvmField
@@ -49,13 +48,19 @@ object Config {
     }
 
     @JvmField
+    val KOTLIN_VERSION = System.getProperty("crucible.kotlin_version") ?: "2.4.0"
+
+    @JvmField
     val GLOBAL_FOLDER = System.getProperty("crucible.global_folder")?.let { Path.of(it) } ?: Path.of(System.getProperty("user.home")).resolve(".crucible")
     @JvmField
     val CACHE_FOLDER = GLOBAL_FOLDER.resolve("caches")
     @JvmField
     val MAVEN_CACHE_FOLDER = CACHE_FOLDER.resolve("maven")
+
     @JvmField
-    val CONFIG_SCRIPT_FILE = System.getProperty("crucible.config_script")?.let { Path.of(it).absolute() } ?: PROJECT_ROOT.resolve("project.crucible.kts")
+    val BUILD_FOLDER = System.getProperty("crucible.build_folder")?.let { Path.of(it).absolute() } ?: PROJECT_ROOT.resolve("build")
     @JvmField
-    val KOTLIN_VERSION = System.getProperty("crucible.kotlin_version") ?: "2.4.0"
+    val SOURCE_OUTPUT_FOLDER = BUILD_FOLDER.resolve("src")
+    @JvmField
+    val CONFIG_SCRIPT_FILE = System.getProperty("crucible.config_script")?.let { Path.of(it).absolute() } ?: PROJECT_ROOT.resolve("crucible.kts")
 }

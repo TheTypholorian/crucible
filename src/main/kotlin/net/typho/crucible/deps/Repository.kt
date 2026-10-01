@@ -5,7 +5,6 @@ import org.eclipse.aether.repository.RemoteRepository
 import org.eclipse.aether.resolution.ArtifactRequest
 import org.eclipse.aether.resolution.ArtifactResolutionException
 import org.eclipse.aether.transfer.ArtifactNotFoundException
-import java.nio.file.Path
 
 interface Repository {
     companion object {
@@ -13,12 +12,12 @@ interface Repository {
         const val TYPHO_NET = "https://typho.net/maven"
 
         @JvmStatic
-        fun Iterable<Repository>.find(dep: DependencyCoordinates): Path? {
-            return firstNotNullOfOrNull { it.find(dep) }
+        fun Iterable<Repository>.find(name: DependencyName): ResolvedDependency? {
+            return firstNotNullOfOrNull { it.find(name) }
         }
     }
 
-    fun find(dep: DependencyCoordinates): Path?
+    fun find(name: DependencyName): ResolvedDependency?
 
     abstract override fun toString(): String
 
@@ -28,9 +27,9 @@ interface Repository {
     ) : Repository {
         constructor(repository: String) : this(RemoteRepository.Builder(null, "default", repository).build())
 
-        override fun find(dep: DependencyCoordinates): Path? {
+        override fun find(name: DependencyName): ResolvedDependency? {
             return try {
-                MavenCache.system.resolveArtifact(MavenCache.session, ArtifactRequest(DefaultArtifact(dep.group, dep.artifact, dep.classifier, dep.extension, dep.version), listOf(repo), null)).artifact?.path
+                MavenCache.system.resolveArtifact(MavenCache.session, ArtifactRequest(DefaultArtifact(name.coordinates), listOf(repo), null)).artifact?.let { ResolvedDependency.Maven(it) }
             } catch (e: ArtifactResolutionException) {
                 if (e.result.exceptions.all { it is ArtifactNotFoundException }) {
                     null
