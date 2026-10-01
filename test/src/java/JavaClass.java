@@ -1,5 +1,5 @@
 public class JavaClass {
     public static void sayHi() {
-        System.out.println("Hiiiii " + Test.class);
+        System.out.println("Hiiiii " + Test.class + "!!");
     }
 }

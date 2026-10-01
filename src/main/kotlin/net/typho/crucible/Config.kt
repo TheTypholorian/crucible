@@ -48,6 +48,8 @@ object Config {
     }
 
     @JvmField
+    val STACKTRACE = DEBUG || System.getProperty("crucible.stacktrace") == "true"
+    @JvmField
     val KOTLIN_VERSION = System.getProperty("crucible.kotlin_version") ?: "2.4.0"
 
     @JvmField
