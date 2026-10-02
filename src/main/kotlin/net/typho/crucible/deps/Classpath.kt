@@ -1,4 +1,4 @@
-package net.typho.crucible
+package net.typho.crucible.deps
 
 import java.io.File
 import java.nio.file.Path
