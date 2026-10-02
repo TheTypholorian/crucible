@@ -1,12 +1,13 @@
 package net.typho.crucible
 
+import net.typho.crucible.deps.Classpath
 import net.typho.crucible.deps.Dependencies
 import net.typho.crucible.deps.Repositories
 import net.typho.crucible.deps.Repository.Companion.find
 import net.typho.crucible.error.ConfigScriptException
 import net.typho.crucible.error.DependencyNotFoundException
-import net.typho.crucible.source.CompileTask
-import net.typho.crucible.source.SourceType
+import net.typho.crucible.script.ProjectConfigScript
+import net.typho.crucible.task.Task
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.absolutePathString
@@ -25,8 +26,6 @@ object Crucible {
     val dependencies = Dependencies()
     @JvmStatic
     var classpath = Classpath()
-    @JvmField
-    var mainClass = "Main"
 
     init {
         Thread.currentThread().uncaughtExceptionHandler = { thread, error ->
@@ -69,6 +68,7 @@ object Crucible {
     @OptIn(ExperimentalPathApi::class)
     @JvmStatic
     fun main(args: Array<String>) {
+        val startTime = System.currentTimeMillis()
         LOG.debug("Starting crucible at ${Config.projectRoot}")
 
         loadConfigScript(Config.configScriptFile)
@@ -76,48 +76,15 @@ object Crucible {
         Config.buildFolder.deleteRecursively()
 
         classpath += dependencies.map {
-            repositories.find(it)?.path?.absolutePathString()
+            repositories.find(it)?.path
                 ?: throw DependencyNotFoundException("Cannot find dependency $it, searched in repositories:\n\t${repositories.joinToString(separator = "\n\t")}")
         }
         LOG.debug("Class path: ${classpath.entries}")
+        LOG.info("Finished config phase in ${(System.currentTimeMillis() - startTime) / 1000f} seconds")
 
-        CompileTask() // TODO
-
-        /*
-        val projectJar = buildJars.resolve("project.jar")
-        projectJar.parent.createDirectories()
-        JarOutputStream(projectJar.outputStream()).use { jar ->
-            buildClasses.walk().forEach { path ->
-                if (path != buildClasses) {
-                    val entry = path.relativeTo(buildClasses).toString().replace(File.separatorChar, '/')
-
-                    if (path.toFile().isDirectory) {
-                        jar.putNextEntry(ZipEntry("$entry/"))
-                        jar.closeEntry()
-                    } else {
-                        jar.putNextEntry(ZipEntry(entry))
-                        path.inputStream().use { it.transferTo(jar) }
-                        jar.closeEntry()
-                    }
-                }
-            }
-        }
-         */
-
-        val process = ProcessBuilder(
-            "java",
-            "-cp",
-            (classpath + SourceType.allOutputs).toString(),
-            mainClass
-            // program args
-        )
-        LOG.debug("Launching process, command: ${process.command().joinToString(separator = " ") { if (it.any { it.isWhitespace() }) "\"$it\"" else it }}")
-        val exitCode = process.inheritIO()
-            .start()
-            .waitFor()
-
-        if (exitCode != 0) {
-            LOG.error("Ended with exit code $exitCode")
+        for (task in args) {
+            LOG.info("Executing task '$task'")
+            Task.get(task).invoke()
         }
     }
 }

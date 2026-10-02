@@ -1,7 +1,7 @@
 package net.typho.crucible.scripts
 
-import net.typho.crucible.AbstractProjectConfig
-import net.typho.crucible.ProjectConfigScript
+import net.typho.crucible.script.AbstractProjectConfig
+import net.typho.crucible.script.ProjectConfigScript
 import kotlin.script.experimental.annotations.KotlinScript
 
 @KotlinScript(

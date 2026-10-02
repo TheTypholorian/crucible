@@ -75,6 +75,13 @@ object Config {
     val kotlinVersion by finalizeOnRead { System.getProperty("crucible.kotlin_version") ?: "2.4.0" }
 
     @JvmStatic
+    var projectGroup by finalizeOnRead { System.getProperty("crucible.project_group") ?: "" }
+    @JvmStatic
+    var projectName by finalizeOnRead { System.getProperty("crucible.project_name") ?: projectRoot.name }
+    @JvmStatic
+    var projectVersion by finalizeOnRead { System.getProperty("crucible.project_version") ?: "" }
+
+    @JvmStatic
     val globalFolder by finalizeOnRead { System.getProperty("crucible.global_folder")?.let { Path.of(it) } ?: Path.of(System.getProperty("user.home")).resolve(".crucible") }
     @JvmStatic
     val cacheFolder by finalizeOnRead { globalFolder.resolve("caches") }
@@ -86,6 +93,8 @@ object Config {
 
     @JvmStatic
     val buildFolder by finalizeOnRead { System.getProperty("crucible.build_folder")?.let { Path.of(it).absolute() } ?: projectRoot.resolve("build") }
+    @JvmStatic
+    val jarOutputFolder by finalizeOnRead { buildFolder.resolve("jars") }
     @JvmStatic
     val sourceOutputFolder by finalizeOnRead { buildFolder.resolve("src") }
     @JvmStatic

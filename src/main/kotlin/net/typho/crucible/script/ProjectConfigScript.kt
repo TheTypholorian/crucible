@@ -1,4 +1,4 @@
-package net.typho.crucible
+package net.typho.crucible.script
 
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.baseClass

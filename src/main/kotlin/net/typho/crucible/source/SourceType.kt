@@ -1,9 +1,8 @@
 package net.typho.crucible.source
 
-import net.typho.crucible.Classpath
 import net.typho.crucible.Config
+import net.typho.crucible.deps.Classpath
 import net.typho.misc_util.EventGraph
-import kotlin.io.path.absolutePathString
 
 abstract class SourceType : EventGraph.SelfAware<String> {
     companion object {
@@ -13,8 +12,6 @@ abstract class SourceType : EventGraph.SelfAware<String> {
             JavaSourceType,
             ResourcesSourceType
         )
-        val allOutputs: Classpath
-            get() = Classpath(all.events.map { it.event.output.absolutePathString() })
     }
 
     abstract override val id: String
