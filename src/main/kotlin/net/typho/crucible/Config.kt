@@ -8,6 +8,8 @@ import kotlin.io.path.absolute
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.readText
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 object Config {
     init {
@@ -31,38 +33,61 @@ object Config {
         }
     }
 
-    @JvmField
-    val PROJECT_ROOT = (System.getProperty("crucible.project_root")?.let { Path.of(it) } ?: Path.of("")).absolute()
+    @JvmStatic
+    fun <V : Any> finalizeOnRead(initial: () -> V) = object : ReadWriteProperty<Any, V> {
+        private var value: V? = null
+        private var read = false
+
+        override fun getValue(thisRef: Any, property: KProperty<*>): V {
+            read = true
+            value?.let { return it }
+            return initial().also { value = it }
+        }
+
+        override fun setValue(thisRef: Any, property: KProperty<*>, value: V) {
+            if (read) {
+                throw IllegalStateException("Cannot set config value ${property.name} as it has already been read")
+            }
+
+            this.value = value
+        }
+    }
+
+    @JvmStatic
+    val projectRoot by finalizeOnRead { (System.getProperty("crucible.project_root")?.let { Path.of(it) } ?: Path.of("")).absolute() }
 
     init {
-        loadConfig(PROJECT_ROOT.resolve("crucible.properties"), false)
+        loadConfig(projectRoot.resolve("crucible.properties"), false)
     }
 
     @JvmField
-    val DEBUG = System.getProperty("crucible.debug") == "true" || System.getProperty("intellij.debug.agent") == "true"
+    var debug = System.getProperty("crucible.debug") == "true" || System.getProperty("intellij.debug.agent") == "true"
 
     init {
-        if (DEBUG) {
+        if (debug) {
             LOG.debug("Enabled crucible debug output")
         }
     }
 
     @JvmField
-    val STACKTRACE = DEBUG || System.getProperty("crucible.stacktrace") == "true"
-    @JvmField
-    val KOTLIN_VERSION = System.getProperty("crucible.kotlin_version") ?: "2.4.0"
+    var stacktrace = debug || System.getProperty("crucible.stacktrace") == "true"
+    @JvmStatic
+    val kotlinVersion by finalizeOnRead { System.getProperty("crucible.kotlin_version") ?: "2.4.0" }
 
-    @JvmField
-    val GLOBAL_FOLDER = System.getProperty("crucible.global_folder")?.let { Path.of(it) } ?: Path.of(System.getProperty("user.home")).resolve(".crucible")
-    @JvmField
-    val CACHE_FOLDER = GLOBAL_FOLDER.resolve("caches")
-    @JvmField
-    val MAVEN_CACHE_FOLDER = CACHE_FOLDER.resolve("maven")
+    @JvmStatic
+    val globalFolder by finalizeOnRead { System.getProperty("crucible.global_folder")?.let { Path.of(it) } ?: Path.of(System.getProperty("user.home")).resolve(".crucible") }
+    @JvmStatic
+    val cacheFolder by finalizeOnRead { globalFolder.resolve("caches") }
+    @JvmStatic
+    val mavenCacheFolder by finalizeOnRead { cacheFolder.resolve("maven") }
 
-    @JvmField
-    val BUILD_FOLDER = System.getProperty("crucible.build_folder")?.let { Path.of(it).absolute() } ?: PROJECT_ROOT.resolve("build")
-    @JvmField
-    val SOURCE_OUTPUT_FOLDER = BUILD_FOLDER.resolve("src")
-    @JvmField
-    val CONFIG_SCRIPT_FILE = System.getProperty("crucible.config_script")?.let { Path.of(it).absolute() } ?: PROJECT_ROOT.resolve("crucible.kts")
+    @JvmStatic
+    val sourceInputFolder by finalizeOnRead { projectRoot.resolve("src") }
+
+    @JvmStatic
+    val buildFolder by finalizeOnRead { System.getProperty("crucible.build_folder")?.let { Path.of(it).absolute() } ?: projectRoot.resolve("build") }
+    @JvmStatic
+    val sourceOutputFolder by finalizeOnRead { buildFolder.resolve("src") }
+    @JvmStatic
+    val configScriptFile by finalizeOnRead { System.getProperty("crucible.config_script")?.let { Path.of(it).absolute() } ?: projectRoot.resolve("crucible.kts") }
 }

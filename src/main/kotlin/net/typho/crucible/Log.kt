@@ -2,9 +2,6 @@
 package net.typho.crucible
 
 import net.typho.misc_util.KtServiceLoader
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.slf4j.ILoggerFactory
 import org.slf4j.Logger
 import org.slf4j.Marker
@@ -77,7 +74,7 @@ private object LogImpl : ILog {
     }
 
     override fun debug(msg: String) {
-        if (Config.DEBUG) {
+        if (Config.debug) {
             info(msg)
         }
     }
@@ -171,13 +168,13 @@ class SLF4JServiceProviderImpl : SLF4JServiceProvider, ILoggerFactory {
             }
         }
 
-        override fun isTraceEnabled() = Config.DEBUG
+        override fun isTraceEnabled() = Config.debug
 
-        override fun isTraceEnabled(marker: Marker) = Config.DEBUG
+        override fun isTraceEnabled(marker: Marker) = Config.debug
 
-        override fun isDebugEnabled() = Config.DEBUG
+        override fun isDebugEnabled() = Config.debug
 
-        override fun isDebugEnabled(marker: Marker) = Config.DEBUG
+        override fun isDebugEnabled(marker: Marker) = Config.debug
 
         override fun isInfoEnabled() = true
 

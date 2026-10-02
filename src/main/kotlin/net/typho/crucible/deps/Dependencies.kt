@@ -11,5 +11,5 @@ class Dependencies : ArrayList<DependencyName>() {
 
     fun add(coordinates: String) = add(DependencyName(coordinates))
 
-    fun kotlin(module: String, version: String = Config.KOTLIN_VERSION) = add(DependencyName("org.jetbrains.kotlin:kotlin-$module:$version"))
+    fun kotlin(module: String, version: String = Config.kotlinVersion) = add(DependencyName("org.jetbrains.kotlin:kotlin-$module:$version"))
 }
