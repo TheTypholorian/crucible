@@ -8,7 +8,6 @@ import net.typho.crucible.task.Task
 abstract class AbstractProjectConfig {
     val repositories by Crucible::repositories
     val dependencies by Crucible::dependencies
-    var classpath by Crucible::classpath
 
     var group by Crucible::projectGroup
     var name by Crucible::projectName

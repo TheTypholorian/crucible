@@ -1,10 +1,14 @@
 package net.typho.crucible.deps
 
+import net.typho.crucible.ide.data.Dependency
+import net.typho.crucible.ide.data.DependencyPathType
+import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.artifact.DefaultArtifact
 import org.eclipse.aether.repository.RemoteRepository
 import org.eclipse.aether.resolution.ArtifactRequest
 import org.eclipse.aether.resolution.ArtifactResolutionException
 import org.eclipse.aether.transfer.ArtifactNotFoundException
+import kotlin.io.path.absolutePathString
 
 interface Repository {
     companion object {
@@ -12,12 +16,12 @@ interface Repository {
         const val TYPHO_NET = "https://typho.net/maven"
 
         @JvmStatic
-        fun Iterable<Repository>.find(name: DependencyName): ResolvedDependency? {
+        fun Iterable<Repository>.find(name: DependencyName): Dependency? {
             return firstNotNullOfOrNull { it.find(name) }
         }
     }
 
-    fun find(name: DependencyName): ResolvedDependency?
+    fun find(name: DependencyName): Dependency?
 
     abstract override fun toString(): String
 
@@ -25,11 +29,11 @@ interface Repository {
         @JvmField
         val repo: RemoteRepository
     ) : Repository {
-        constructor(repository: String) : this(RemoteRepository.Builder(null, "default", repository).build())
+        constructor(repository: String) : this(RemoteRepository.Builder(repository, "default", repository).build())
 
-        override fun find(name: DependencyName): ResolvedDependency? {
+        fun find(artifact: Artifact): Artifact? {
             return try {
-                MavenCache.system.resolveArtifact(MavenCache.session, ArtifactRequest(DefaultArtifact(name.coordinates), listOf(repo), null)).artifact?.let { ResolvedDependency.Maven(it) }
+                MavenCache.system.resolveArtifact(MavenCache.session, ArtifactRequest(artifact, listOf(repo), null)).artifact
             } catch (e: ArtifactResolutionException) {
                 if (e.result.exceptions.all { it is ArtifactNotFoundException }) {
                     null
@@ -37,6 +41,19 @@ interface Repository {
                     throw e
                 }
             }
+        }
+
+        override fun find(name: DependencyName): Dependency? {
+            val request = DefaultArtifact(name.coordinates)
+            val main = find(request) ?: return null
+            val sources = find(DefaultArtifact(request.groupId, request.artifactId, "sources", request.extension, request.version))
+            return Dependency(name.coordinates, buildList {
+                add(Dependency.Path(DependencyPathType.BINARY, main.path.absolutePathString()))
+
+                if (sources != null) {
+                    add(Dependency.Path(DependencyPathType.SOURCE, sources.path.absolutePathString()))
+                }
+            })
         }
 
         override fun toString(): String {

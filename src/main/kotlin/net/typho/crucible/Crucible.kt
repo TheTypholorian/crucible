@@ -123,9 +123,7 @@ object Crucible {
     @JvmField
     val repositories = Repositories()
     @JvmField
-    val dependencies = Dependencies()
-    @JvmStatic
-    var classpath = Classpath()
+    val dependencies = Dependencies(repositories)
 
     init {
         Thread.currentThread().uncaughtExceptionHandler = { thread, error ->
@@ -180,11 +178,6 @@ object Crucible {
 
         buildFolder.deleteRecursively()
 
-        classpath += dependencies.map {
-            repositories.find(it)?.path
-                ?: throw DependencyNotFoundException("Cannot find dependency $it, searched in repositories:\n\t${repositories.joinToString(separator = "\n\t")}")
-        }
-        LOG.debug("Class path: ${classpath.entries}")
         LOG.debug("Finished config phase in ${(System.currentTimeMillis() - startTime) / 1000f} seconds")
 
         for (task in args) {

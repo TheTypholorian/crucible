@@ -26,12 +26,7 @@ object RefreshIDETask : Task<Unit> {
                     )
                 }
             },
-            Crucible./* TODO */classpath.entries.map { path ->
-                CrucibleIDEData.Dependency(path.name, listOf(CrucibleIDEData.Dependency.Path(
-                    DependencyPathType.BINARY, // TODO
-                    path.absolutePathString()
-                )))
-            }
+            Crucible.dependencies
         )
         output.parent.createDirectories()
         output.writeText(JsonFormat().write(CrucibleIDEData.CODEC, data))

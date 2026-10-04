@@ -29,7 +29,7 @@ object KotlinSourceSet : SourceSet() {
             javaSourceRoots = JavaSourceSet.inputs.map { it.absolutePathString() }.toTypedArray()
             destination = output.absolutePathString()
             jvmTarget = "21" // TODO
-            classpath = Crucible.classpath.toString()
+            classpath = Crucible.dependencies.classpath.toString()
             noStdlib = true
         }
         val errors = mutableListOf<String>()

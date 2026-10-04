@@ -8,7 +8,7 @@ import kotlin.io.path.absolutePathString
 object PrintClasspathTask : Task<Unit> {
     override fun invoke() {
         LOG.info("Classpath:")
-        Crucible.classpath.entries.forEach { path ->
+        Crucible.dependencies.classpath.entries.forEach { path ->
             LOG.info("- ${path.absolutePathString()}")
         }
     }
