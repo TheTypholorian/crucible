@@ -16,6 +16,7 @@ repositories {
 }
 
 dependencies {
+    implementation("net.typho:crucible.ide_data:1.0.1")
     implementation("net.typho:data_util:1.3.5")
     implementation("net.typho:asm_util:1.3.6")
     implementation("net.typho:misc_util:1.0.1")
@@ -54,7 +55,7 @@ idea {
                     mainClass = "net.typho.crucible.Crucible"
                     moduleName = "crucible.main"
                     jvmArgs = "-Dcrucible.project_root=${file("test").absolutePath}\n--sun-misc-unsafe-memory-access=allow"
-                    programParameters = "print_classpath run"
+                    programParameters = "refresh_ide print_classpath run"
                 }
             }
         }

@@ -11,7 +11,7 @@ import kotlin.io.path.deleteRecursively
 object CompileTask : Task.RunOnce<List<Path>>() {
     @OptIn(ExperimentalPathApi::class)
     override fun invokeImpl(): List<Path> {
-        return SourceType.all.resolve().map {
+        return SourceSet.all.resolve().map {
             LOG.debug("Compiling source type '${it.id}' to ${it.event.output.absolutePathString()}")
             it.event.output.deleteRecursively()
             it.event.output.createDirectories()

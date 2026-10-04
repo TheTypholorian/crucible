@@ -1,6 +1,6 @@
 import org.jetbrains.intellij.platform.gradle.extensions.intellijPlatform
 
-rootProject.name = "intellij"
+rootProject.name = "crucible.intellij"
 
 pluginManagement {
     plugins {
@@ -18,6 +18,7 @@ dependencyResolutionManagement {
     // Configure all projects' repositories
     repositories {
         mavenCentral()
+        maven("https://typho.net/maven")
 
         // IntelliJ Platform Gradle Plugin Repositories Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-repositories-extension.html
         intellijPlatform {

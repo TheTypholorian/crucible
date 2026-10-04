@@ -107,6 +107,8 @@ object Crucible {
     val mavenCacheFolder by finalizeOnRead { cacheFolder.resolve("maven") }
 
     @JvmStatic
+    val projectCacheFolder by finalizeOnRead { projectRoot.resolve(".crucible") }
+    @JvmStatic
     val sourceInputFolder by finalizeOnRead { projectRoot.resolve("src") }
 
     @JvmStatic

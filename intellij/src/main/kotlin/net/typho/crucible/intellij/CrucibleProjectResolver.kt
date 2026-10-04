@@ -14,10 +14,13 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
 import com.intellij.openapi.module.GeneralModuleType
-import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.LibraryData
+import net.typho.crucible.ide.data.CrucibleIDEData
+import net.typho.crucible.ide.data.DependencyPathType
+import net.typho.crucible.ide.data.SourceSetType
+import net.typho.data_util.impl.JsonFormat
 import java.nio.file.Paths
 import kotlin.io.path.absolute
-import kotlin.io.path.name
+import kotlin.io.path.readText
 
 class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemManager.ExecutionSettings> {
     override fun resolveProjectInfo(
@@ -28,11 +31,14 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
         listener: ExternalSystemTaskNotificationListener
     ): DataNode<ProjectData> {
         val projectPath = Paths.get(projectPath).absolute()
+        val infoPath = projectPath.resolve(".crucible").resolve("ide.json")
+        val info = JsonFormat().read(CrucibleIDEData.CODEC, infoPath.readText())
+
         return DataNode(
             ProjectKeys.PROJECT,
             ProjectData(
                 SYSTEM_ID,
-                projectPath.name, // TODO
+                info.projectName,
                 projectPath.resolve(".idea").toString(),
                 projectPath.toString()
             ),
@@ -41,10 +47,10 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
             addChild(DataNode(
                 ProjectKeys.MODULE,
                 ModuleData(
-                    projectPath.name,
+                    info.projectName,
                     SYSTEM_ID,
                     GeneralModuleType.TYPE_ID,
-                    projectPath.name,
+                    info.projectName,
                     projectPath.toString(),
                     projectPath.toString()
                 ),
@@ -53,46 +59,41 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
                 addChild(DataNode(
                     ProjectKeys.CONTENT_ROOT,
                     ContentRootData(SYSTEM_ID, projectPath.toString()).apply {
-                        storePath(ExternalSystemSourceType.SOURCE, "$projectPath/src/java")
-                        storePath(ExternalSystemSourceType.SOURCE, "$projectPath/src/kotlin")
-                        storePath(ExternalSystemSourceType.RESOURCE, "$projectPath/src/resources")
+                        for (set in info.sourceSets) {
+                            storePath(when (set.type) {
+                                SourceSetType.CODE -> if (set.generated) ExternalSystemSourceType.SOURCE_GENERATED else ExternalSystemSourceType.SOURCE
+                                SourceSetType.RESOURCES -> if (set.generated) ExternalSystemSourceType.RESOURCE_GENERATED else ExternalSystemSourceType.RESOURCE
+                            }, set.path)
+                        }
                     },
                     this
                 ))
-                addChild(DataNode(
-                    ProjectKeys.LIBRARY_DEPENDENCY,
-                    LibraryDependencyData(
-                        data,
-                        LibraryData(
-                            SYSTEM_ID,
-                            "kotlin-stdlib-2.4.0.jar"
-                        ).apply {
-                            addPath(LibraryPathType.BINARY, "C:\\Users\\evan\\.crucible\\caches\\maven\\org\\jetbrains\\kotlin\\kotlin-stdlib\\2.4.0\\kotlin-stdlib-2.4.0.jar")
-                        },
-                        LibraryLevel.PROJECT
-                    ),
-                    this
-                ))
-                addChild(DataNode(
-                    ProjectKeys.LIBRARY_DEPENDENCY,
-                    LibraryDependencyData(
-                        data,
-                        LibraryData(
-                            SYSTEM_ID,
-                            "data_util-1.3.5.jar"
-                        ).apply {
-                            addPath(LibraryPathType.BINARY, "C:\\Users\\evan\\.crucible\\caches\\maven\\net\\typho\\data_util\\1.3.5\\data_util-1.3.5.jar")
-                        },
-                        LibraryLevel.PROJECT
-                    ),
-                    this
-                ))
+
+                for (dep in info.dependencies) {
+                    addChild(DataNode(
+                        ProjectKeys.LIBRARY_DEPENDENCY,
+                        LibraryDependencyData(
+                            data,
+                            LibraryData(
+                                SYSTEM_ID,
+                                dep.name
+                            ).apply {
+                                for (path in dep.paths) {
+                                    addPath(when (path.type) {
+                                        DependencyPathType.BINARY -> LibraryPathType.BINARY
+                                        DependencyPathType.SOURCE -> LibraryPathType.SOURCE
+                                        DependencyPathType.DOC -> LibraryPathType.DOC
+                                    }, path.path)
+                                }
+                            },
+                            LibraryLevel.PROJECT
+                        ),
+                        this
+                    ))
+                }
             })
         }
     }
-
-    //- C:\Users\evan\.crucible\caches\maven\org\jetbrains\kotlin\kotlin-stdlib\2.4.0\kotlin-stdlib-2.4.0.jar
-    //- C:\Users\evan\.crucible\caches\maven\net\typho\data_util\1.3.5\data_util-1.3.5.jar
 
     override fun cancelTask(
         taskId: ExternalSystemTaskId,

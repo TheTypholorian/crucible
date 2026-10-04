@@ -1,6 +1,8 @@
 package net.typho.crucible.intellij
 
 import com.intellij.execution.configurations.SimpleJavaParameters
+import com.intellij.ide.plugins.cl.PluginAwareClassLoader
+import com.intellij.ide.plugins.cl.PluginClassLoader
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.externalSystem.ExternalSystemManager
@@ -16,6 +18,10 @@ import com.intellij.openapi.util.Pair
 import com.intellij.util.Function
 import com.intellij.util.messages.Topic
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinitionProvider
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.walk
 
 @JvmField
 val SYSTEM_ID = ProjectSystemId("CRUCIBLE")
@@ -53,7 +59,11 @@ class CrucibleSystemManager : ExternalSystemManager<
     }
 
     override fun enhanceRemoteProcessing(parameters: SimpleJavaParameters) {
-        // TODO
+        val loader = CrucibleSystemManager::class.java.classLoader
+
+        if (loader is PluginClassLoader) {
+            parameters.classPath.addAll(loader.getLibDirectories().flatMap { it.walk() }.map { it.absolutePathString() })
+        }
     }
 
     class ProjectSettings : ExternalProjectSettings() {

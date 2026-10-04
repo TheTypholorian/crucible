@@ -1,6 +1,7 @@
 package net.typho.crucible.task
 
 import net.typho.crucible.deps.PrintClasspathTask
+import net.typho.crucible.ide.RefreshIDETask
 import net.typho.crucible.source.CompileTask
 import net.typho.crucible.source.JarTask
 
@@ -10,7 +11,8 @@ fun interface Task<R> : () -> R {
         val STATIC = mutableMapOf<String, Task<*>>(
             "compile" to CompileTask,
             "jar" to JarTask.Main,
-            "print_classpath" to PrintClasspathTask
+            "print_classpath" to PrintClasspathTask,
+            "refresh_ide" to RefreshIDETask
         )
 
         @JvmStatic

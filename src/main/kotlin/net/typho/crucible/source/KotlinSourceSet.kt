@@ -3,6 +3,7 @@ package net.typho.crucible.source
 import net.typho.crucible.Crucible
 import net.typho.crucible.LOG
 import net.typho.crucible.error.CompilationException
+import net.typho.crucible.ide.data.SourceSetType
 import net.typho.misc_util.EventGraph
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -13,19 +14,19 @@ import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
 import kotlin.io.path.absolutePathString
 
-object KotlinSourceType : SourceType() {
+object KotlinSourceSet : SourceSet() {
     override val id = "kotlin"
-    override val type = Type.CODE
+    override val type = SourceSetType.CODE
 
     override fun postRegister(event: EventGraph<String, *>.Event) {
-        event.before(JavaSourceType)
+        event.before(JavaSourceSet)
     }
 
     override fun compile() {
         val compiler = K2JVMCompiler()
         val args = compiler.createArguments().apply {
             freeArgs = inputs.map { it.absolutePathString() }
-            javaSourceRoots = JavaSourceType.inputs.map { it.absolutePathString() }.toTypedArray()
+            javaSourceRoots = JavaSourceSet.inputs.map { it.absolutePathString() }.toTypedArray()
             destination = output.absolutePathString()
             jvmTarget = "21" // TODO
             classpath = Crucible.classpath.toString()
