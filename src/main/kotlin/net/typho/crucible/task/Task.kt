@@ -1,5 +1,6 @@
 package net.typho.crucible.task
 
+import net.typho.crucible.deps.PrintClasspathTask
 import net.typho.crucible.source.CompileTask
 import net.typho.crucible.source.JarTask
 
@@ -8,7 +9,8 @@ fun interface Task<R> : () -> R {
         @JvmField
         val STATIC = mutableMapOf<String, Task<*>>(
             "compile" to CompileTask,
-            "jar" to JarTask.Main
+            "jar" to JarTask.Main,
+            "print_classpath" to PrintClasspathTask
         )
 
         @JvmStatic

@@ -1,6 +1,6 @@
 package net.typho.crucible.source
 
-import net.typho.crucible.Config
+import net.typho.crucible.Crucible
 import net.typho.crucible.task.Task
 import java.io.File
 import java.nio.file.Path
@@ -16,8 +16,8 @@ open class JarTask(
     inputs: () -> List<Path>,
     output: () -> Path
 ) : Task<Unit> {
-    val inputs by Config.finalizeOnRead(inputs)
-    val output by Config.finalizeOnRead(output)
+    val inputs by Crucible.finalizeOnRead(inputs)
+    val output by Crucible.finalizeOnRead(output)
 
     override fun invoke() {
         output.parent.createDirectories()
@@ -42,12 +42,12 @@ open class JarTask(
     }
 
     object Main : JarTask(CompileTask, {
-        Config.jarOutputFolder.resolve(buildString {
-            append(Config.projectName)
+        Crucible.jarOutputFolder.resolve(buildString {
+            append(Crucible.projectName)
 
-            if (Config.projectVersion.isNotEmpty()) {
+            if (Crucible.projectVersion.isNotEmpty()) {
                 append('-')
-                append(Config.projectVersion)
+                append(Crucible.projectVersion)
             }
 
             append(".jar")

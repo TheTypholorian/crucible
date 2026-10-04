@@ -1,6 +1,5 @@
 package net.typho.crucible.script
 
-import net.typho.crucible.Config
 import net.typho.crucible.Crucible
 import net.typho.crucible.deps.Dependencies
 import net.typho.crucible.deps.Repositories
@@ -11,9 +10,9 @@ abstract class AbstractProjectConfig {
     val dependencies by Crucible::dependencies
     var classpath by Crucible::classpath
 
-    var group by Config::projectGroup
-    var name by Config::projectName
-    var version by Config::projectVersion
+    var group by Crucible::projectGroup
+    var name by Crucible::projectName
+    var version by Crucible::projectVersion
 
     fun repositories(action: Repositories.() -> Unit) = action(repositories)
 

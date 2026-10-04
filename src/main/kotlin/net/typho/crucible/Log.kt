@@ -74,7 +74,7 @@ private object LogImpl : ILog {
     }
 
     override fun debug(msg: String) {
-        if (Config.debug) {
+        if (Crucible.debug) {
             info(msg)
         }
     }
@@ -144,7 +144,7 @@ class SLF4JServiceProviderImpl : SLF4JServiceProvider, ILoggerFactory {
             arguments: Array<out Any?>?,
             throwable: Throwable?
         ) {
-            var msg = if (arguments == null) {
+            val message = "[$name] " + if (arguments == null) {
                 messagePattern
             } else {
                 val format = if (throwable == null) {
@@ -156,25 +156,21 @@ class SLF4JServiceProviderImpl : SLF4JServiceProvider, ILoggerFactory {
                 if (format.throwable == null) format.message else format.message + "\n" + format.throwable.fullToString()
             }
 
-            if (marker != null) {
-                msg = marker.toString() + msg
-            }
-
             when (level) {
-                Level.ERROR -> LOG.error(msg)
-                Level.WARN -> LOG.warn(msg)
-                Level.DEBUG -> LOG.debug(msg)
-                else -> LOG.info(msg)
+                Level.ERROR -> LOG.error(message)
+                Level.WARN -> LOG.warn(message)
+                Level.DEBUG -> LOG.debug(message)
+                else -> LOG.info(message)
             }
         }
 
-        override fun isTraceEnabled() = Config.debug
+        override fun isTraceEnabled() = Crucible.debug
 
-        override fun isTraceEnabled(marker: Marker) = Config.debug
+        override fun isTraceEnabled(marker: Marker) = Crucible.debug
 
-        override fun isDebugEnabled() = Config.debug
+        override fun isDebugEnabled() = Crucible.debug
 
-        override fun isDebugEnabled(marker: Marker) = Config.debug
+        override fun isDebugEnabled(marker: Marker) = Crucible.debug
 
         override fun isInfoEnabled() = true
 

@@ -1,7 +1,6 @@
 package net.typho.crucible.source
 
-import net.typho.crucible.Config
-import net.typho.crucible.deps.Classpath
+import net.typho.crucible.Crucible
 import net.typho.misc_util.EventGraph
 
 abstract class SourceType : EventGraph.SelfAware<String> {
@@ -16,8 +15,8 @@ abstract class SourceType : EventGraph.SelfAware<String> {
 
     abstract override val id: String
     abstract val type: Type
-    val inputs by Config.finalizeOnRead { listOf(Config.sourceInputFolder.resolve(id)) }
-    val output by Config.finalizeOnRead { Config.sourceOutputFolder.resolve(id) }
+    val inputs by Crucible.finalizeOnRead { listOf(Crucible.sourceInputFolder.resolve(id)) }
+    val output by Crucible.finalizeOnRead { Crucible.sourceOutputFolder.resolve(id) }
 
     abstract fun compile()
 

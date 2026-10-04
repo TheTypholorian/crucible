@@ -54,7 +54,7 @@ idea {
                     mainClass = "net.typho.crucible.Crucible"
                     moduleName = "crucible.main"
                     jvmArgs = "-Dcrucible.project_root=${file("test").absolutePath}\n--sun-misc-unsafe-memory-access=allow"
-                    programParameters = "run"
+                    programParameters = "print_classpath run"
                 }
             }
         }

@@ -1,6 +1,6 @@
 package net.typho.crucible.source
 
-import net.typho.crucible.Config
+import net.typho.crucible.Crucible
 import net.typho.crucible.LOG
 import net.typho.crucible.deps.Classpath
 import net.typho.crucible.error.JavaExecException
@@ -12,10 +12,10 @@ open class JavaExecTask(
     javaArgs: () -> List<Pair<String, String>> = { listOf() },
     programArgs: () -> List<String> = { listOf() }
 ) : Task<Unit> {
-    val classPath by Config.finalizeOnRead(classpath)
-    val mainClass by Config.finalizeOnRead(mainClass)
-    val javaArgs by Config.finalizeOnRead(javaArgs)
-    val programArgs by Config.finalizeOnRead(programArgs)
+    val classPath by Crucible.finalizeOnRead(classpath)
+    val mainClass by Crucible.finalizeOnRead(mainClass)
+    val javaArgs by Crucible.finalizeOnRead(javaArgs)
+    val programArgs by Crucible.finalizeOnRead(programArgs)
 
     override fun invoke() {
         val process = ProcessBuilder(

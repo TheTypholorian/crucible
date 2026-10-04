@@ -12,6 +12,6 @@ dependencies {
 }
 
 registerTask("run", JavaExecTask(
-    classpath = { classpath + getTask("compile", CompileTask::class.java)() },
+    classpath = { classpath + CompileTask() },
     mainClass = { "Test" }
 ))

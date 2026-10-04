@@ -1,6 +1,6 @@
 package net.typho.crucible.deps
 
-import net.typho.crucible.Config
+import net.typho.crucible.Crucible
 import net.typho.crucible.ILog
 import net.typho.crucible.LOG
 import org.eclipse.aether.supplier.RepositorySystemSupplier
@@ -13,7 +13,7 @@ object MavenCache : TransferListener {
     val system = RepositorySystemSupplier().get()
     @JvmField
     val session = system.createSessionBuilder()
-        .withLocalRepositoryBaseDirectories(Config.mavenCacheFolder)
+        .withLocalRepositoryBaseDirectories(Crucible.mavenCacheFolder)
         .withTransferListener(this)
         .build()
     @JvmField
