@@ -12,8 +12,9 @@ object PrintClasspathTask : Task<Unit> {
         get() = "Prints a list of classpath elements (dependencies)"
 
     override fun invoke() {
+        val classpath = Crucible.dependencies.classpath.entries
         LOG.info("Classpath:")
-        Crucible.dependencies.classpath.entries.forEach { path ->
+        classpath.forEach { path ->
             LOG.info("- ${path.absolutePathString()}")
         }
     }

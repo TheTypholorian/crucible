@@ -11,7 +11,7 @@ import kotlin.io.path.writeText
 
 object RefreshIDETask : Task<Unit> {
     override val group: String
-        get() = "ide"
+        get() = "internal"
     override val description: String
         get() = "Outputs the ide info (project name, source sets, dependencies, and tasks) to ${Crucible.ideInfoFile}"
 
@@ -28,7 +28,7 @@ object RefreshIDETask : Task<Unit> {
                 }
             },
             Crucible.dependencies(),
-            Task.STATIC.entries.map { (name, task) -> CrucibleIDEData.Task(name, task.group, task.description) }
+            Task.STATIC.entries.filter { it.value.group != "internal" }.map { (name, task) -> CrucibleIDEData.Task(name, task.group, task.description) }
         )
         Crucible.ideInfoFile.parent.createDirectories()
         Crucible.ideInfoFile.writeText(JsonFormat().write(CrucibleIDEData.CODEC, data))

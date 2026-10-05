@@ -2,7 +2,6 @@ package net.typho.crucible.intellij
 
 import com.intellij.execution.configurations.SimpleJavaParameters
 import com.intellij.icons.AllIcons
-import com.intellij.ide.plugins.cl.PluginClassLoader
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
@@ -23,10 +22,9 @@ import com.intellij.openapi.util.Pair
 import com.intellij.util.Function
 import com.intellij.util.messages.Topic
 import icons.ExternalSystemIcons
+import net.typho.crucible.intellij.task.CrucibleSystemTaskManager
 import java.nio.file.Paths
-import kotlin.io.path.absolutePathString
 import kotlin.io.path.name
-import kotlin.io.path.walk
 
 @JvmField
 val SYSTEM_ID = ProjectSystemId("CRUCIBLE", "Crucible")
@@ -80,7 +78,7 @@ class CrucibleSystemManager : ExternalSystemManager<
 
     override fun getExternalProjectConfigDescriptor() = null
 
-    override fun getProjectIcon() = AllIcons.Nodes.IdeaProject // TODO
+    override fun getProjectIcon() = CrucibleIcons.ICON // TODO
 
     override fun getTaskIcon() = ExternalSystemIcons.Task
 

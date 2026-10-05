@@ -1,6 +1,8 @@
 package net.typho.crucible.intellij
 
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.openapi.externalSystem.model.DataNode
+import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
@@ -18,6 +20,7 @@ import com.intellij.openapi.module.GeneralModuleType
 import net.typho.crucible.ide.data.CrucibleIDEData
 import net.typho.crucible.ide.data.DependencyPathType
 import net.typho.crucible.ide.data.SourceSetType
+import net.typho.crucible.intellij.task.CrucibleSystemTaskManager
 import net.typho.data_util.impl.JsonFormat
 import java.nio.file.Paths
 import kotlin.io.path.absolute
@@ -31,7 +34,13 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
         settings: CrucibleSystemManager.ExecutionSettings?,
         listener: ExternalSystemTaskNotificationListener
     ): DataNode<ProjectData> {
-        CrucibleSystemTaskManager.run(projectPath, id, listOf("refresh_ide"), listener)
+        val exitCode = CrucibleSystemTaskManager.run(projectPath, id, listOf("refresh_ide"), listener)
+
+        if (exitCode == 0) {
+            listener.onTaskOutput(id, "Build finished", ProcessOutputType.STDOUT)
+        } else {
+            throw ExternalSystemException("Task failed with exit code $exitCode")
+        }
 
         val projectPath = Paths.get(projectPath).absolute()
         val info = JsonFormat().read(CrucibleIDEData.CODEC, projectPath.resolve(".crucible").resolve("ide.json").readText())

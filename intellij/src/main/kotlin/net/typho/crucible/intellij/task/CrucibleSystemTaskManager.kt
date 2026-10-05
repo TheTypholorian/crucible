@@ -1,9 +1,11 @@
-package net.typho.crucible.intellij
+package net.typho.crucible.intellij.task
 
 import com.intellij.execution.process.ProcessOutputType
+import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.task.ExternalSystemTaskManager
+import net.typho.crucible.intellij.CrucibleSystemManager
 import java.io.File
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
@@ -16,9 +18,10 @@ class CrucibleSystemTaskManager : ExternalSystemTaskManager<CrucibleSystemManage
             id: ExternalSystemTaskId,
             tasks: List<String>,
             listener: ExternalSystemTaskNotificationListener
-        ) {
+        ): Int {
             val command = ProcessBuilder(buildList {
                 add("java")
+                add("--sun-misc-unsafe-memory-access=allow")
                 add("-jar")
                 add(Paths.get(projectPath).resolve("crucible.jar").absolutePathString())
                 addAll(tasks)
@@ -26,7 +29,7 @@ class CrucibleSystemTaskManager : ExternalSystemTaskManager<CrucibleSystemManage
                 .directory(File(projectPath))
                 .start()
 
-            Thread {
+            val stdOut = Thread {
                 command.inputStream.reader().use { reader ->
                     val buf = CharArray(4096)
 
@@ -36,8 +39,8 @@ class CrucibleSystemTaskManager : ExternalSystemTaskManager<CrucibleSystemManage
                         listener.onTaskOutput(id, String(buf, 0, n), ProcessOutputType.STDOUT)
                     }
                 }
-            }.start()
-            Thread {
+            }
+            val stdErr = Thread {
                 command.errorStream.reader().use { reader ->
                     val buf = CharArray(4096)
 
@@ -47,13 +50,17 @@ class CrucibleSystemTaskManager : ExternalSystemTaskManager<CrucibleSystemManage
                         listener.onTaskOutput(id, String(buf, 0, n), ProcessOutputType.STDERR)
                     }
                 }
-            }.start()
-
-            val exitCode = command.waitFor()
-
-            if (exitCode != 0) {
-                throw RuntimeException(exitCode.toString())
             }
+
+            stdOut.start()
+            stdErr.start()
+
+            val code = command.waitFor()
+
+            stdOut.join()
+            stdErr.join()
+
+            return code
         }
     }
 
@@ -62,7 +69,13 @@ class CrucibleSystemTaskManager : ExternalSystemTaskManager<CrucibleSystemManage
         id: ExternalSystemTaskId,
         settings: CrucibleSystemManager.ExecutionSettings,
         listener: ExternalSystemTaskNotificationListener
-    ) = run(projectPath, id, settings.tasks, listener)
+    ) {
+        val exitCode = run(projectPath, id, settings.tasks, listener)
+
+        if (exitCode != 0) {
+            throw ExternalSystemException("Task failed with exit code $exitCode")
+        }
+    }
 
     override fun cancelTask(
         id: ExternalSystemTaskId,
