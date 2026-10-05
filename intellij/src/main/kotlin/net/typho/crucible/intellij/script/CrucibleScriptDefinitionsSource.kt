@@ -2,23 +2,21 @@ package net.typho.crucible.intellij.script
 
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
-import org.jetbrains.kotlin.scripting.definitions.ScriptDefinitionProvider
+import org.jetbrains.kotlin.scripting.definitions.ScriptDefinitionsSource
 import java.io.File
 import java.net.URLClassLoader
-import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.host.ScriptingHostConfiguration
+import kotlin.script.experimental.host.getScriptingClass
+import kotlin.script.experimental.jvm.JvmGetScriptingClass
 import kotlin.script.experimental.jvm.baseClassLoader
 import kotlin.script.experimental.jvm.jvm
 
-class CrucibleScriptDefinitionsProvider(
+@Suppress("DEPRECATION")
+class CrucibleScriptDefinitionsSource(
     private val project: Project
-) : ScriptDefinitionProvider {
-    init {
-        throw NullPointerException("create provider $project")
-    }
-
-    override val currentDefinitions: Sequence<ScriptDefinition> by lazy {
-        println("get definitions")
+) : ScriptDefinitionsSource {
+    override val definitions: Sequence<ScriptDefinition> by lazy {
+        println("get definitions ${project.name}")
         // TODO
         val scriptsJar = File("C:\\Users\\evan\\IdeaProjects\\crucible\\scripts\\build\\libs\\scripts.jar")
         val crucibleJar = File("C:\\Users\\evan\\IdeaProjects\\crucible\\build\\libs\\crucible-1.0.0.jar")
@@ -35,21 +33,14 @@ class CrucibleScriptDefinitionsProvider(
             ScriptingHostConfiguration {
                 jvm {
                     baseClassLoader(loader)
+                    getScriptingClass(JvmGetScriptingClass())
                 }
             },
             Class.forName(
-                "net.typho.crucible.script.AbstractProjectConfig",
+                "net.typho.crucible.script.ProjectConfigScriptDefinition",
                 true,
                 loader
             ).kotlin
         ))
     }
-
-    override fun findDefinition(script: SourceCode) = currentDefinitions.firstOrNull { it.isScript(script) }
-
-    override fun getDefaultDefinition() = currentDefinitions.single()
-
-    override fun getKnownFilenameExtensions() = currentDefinitions.map { it.fileExtension }
-
-    override fun isScript(script: SourceCode) = findDefinition(script) != null
 }

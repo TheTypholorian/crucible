@@ -13,8 +13,7 @@
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
     <description><![CDATA[
-        Enter short description for your plugin here.<br>
-        <em>most HTML tags may be used</em>
+        IntelliJ support for the crucible build system.
         ]]></description>
 
     <!-- Product and plugin compatibility requirements.
@@ -30,8 +29,6 @@
         <externalSystemManager implementation="net.typho.crucible.intellij.CrucibleSystemManager" />
         <externalSystemUnlinkedProjectAware implementation="net.typho.crucible.intellij.CrucibleUnlinkedProjectAware" />
 
-        <toolWindow id="Crucible" anchor="right" factoryClass="net.typho.crucible.intellij.CrucibleToolWindowFactory" />
-
         <configurationType implementation="net.typho.crucible.intellij.CrucibleTaskConfigurationType"/>
 
         <registryKey key="CRUCIBLE.system.in.process"
@@ -42,10 +39,7 @@
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <supportsKotlinPluginMode supportsK2="true" />
-    </extensions>
-
-    <extensions defaultExtensionNs="org.jetbrains.kotlin.scripting.definitions">
-        <scriptDefinitionProvider implementation="net.typho.crucible.intellij.script.CrucibleScriptDefinitionsProvider"/>
+        <scriptDefinitionsSource implementation="net.typho.crucible.intellij.script.CrucibleScriptDefinitionsSource" />
     </extensions>
 
 </idea-plugin>
