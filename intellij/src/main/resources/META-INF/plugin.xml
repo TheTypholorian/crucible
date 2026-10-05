@@ -29,6 +29,15 @@
     <extensions defaultExtensionNs="com.intellij">
         <externalSystemManager implementation="net.typho.crucible.intellij.CrucibleSystemManager" />
         <externalSystemUnlinkedProjectAware implementation="net.typho.crucible.intellij.CrucibleUnlinkedProjectAware" />
+
+        <toolWindow id="Crucible" anchor="right" factoryClass="net.typho.crucible.intellij.CrucibleToolWindowFactory" />
+
+        <configurationType implementation="net.typho.crucible.intellij.CrucibleTaskConfigurationType"/>
+
+        <registryKey key="CRUCIBLE.system.in.process"
+                     defaultValue="true"
+                     restartRequired="true"
+                     description="Run Crucible external system tasks inside the IDE process"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">

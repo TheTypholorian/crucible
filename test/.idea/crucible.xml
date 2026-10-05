@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SystemSettings">
+    <option name="linkedExternalProjectsSettings">
+      <set>
+        <ProjectSettings>
+          <option name="externalProjectPath" value="$PROJECT_DIR$" />
+          <option name="modules">
+            <set>
+              <option value="C:\Users\evan\IdeaProjects\crucible\test" />
+            </set>
+          </option>
+        </ProjectSettings>
+      </set>
+    </option>
+  </component>
+</project>

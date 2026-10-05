@@ -31,6 +31,11 @@ fun interface Task<R> : () -> R {
         }
     }
 
+    val group: String
+        get() = "other"
+    val description: String
+        get() = ""
+
     override operator fun invoke(): R
 
     abstract class RunOnce<R> : Task<R> {

@@ -8,7 +8,9 @@ data class CrucibleIDEData(
     @JvmField
     val sourceSets: List<SourceSet>,
     @JvmField
-    val dependencies: List<Dependency>
+    val dependencies: List<Dependency>,
+    @JvmField
+    val tasks: List<Task>
 ) {
     companion object {
         @JvmField
@@ -31,9 +33,11 @@ data class CrucibleIDEData(
 
     data class Task(
         @JvmField
-        val name: String,
+        val id: String,
         @JvmField
-        val description: String?
+        val group: String,
+        @JvmField
+        val description: String
     ) {
         companion object {
             @JvmField

@@ -1,0 +1,8 @@
+package net.typho.crucible.intellij
+
+import com.intellij.openapi.externalSystem.settings.DelegatingExternalSystemSettingsListener
+import com.intellij.openapi.externalSystem.settings.ExternalSystemSettingsListener
+
+class DelegatingCrucibleSettingsListenerAdapter(
+    delegate: ExternalSystemSettingsListener<CrucibleSystemManager.ProjectSettings>
+) : DelegatingExternalSystemSettingsListener<CrucibleSystemManager.ProjectSettings>(delegate), CrucibleSystemManager.SettingsListener

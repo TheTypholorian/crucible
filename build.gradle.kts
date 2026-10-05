@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.gradle.ext.Application
 import org.jetbrains.gradle.ext.runConfigurations
 import org.jetbrains.gradle.ext.settings
@@ -5,6 +6,7 @@ import org.jetbrains.gradle.ext.settings
 plugins {
     kotlin("jvm") version "2.4.0"
     id("org.jetbrains.gradle.plugin.idea-ext") version "1.4.1"
+    id("com.gradleup.shadow") version "9.6.1"
 }
 
 group = "net.typho"
@@ -16,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    implementation("net.typho:crucible.ide_data:1.0.2")
+    implementation("net.typho:crucible.ide_data:1.0.3")
     implementation("net.typho:data_util:1.3.5")
     implementation("net.typho:asm_util:1.3.6")
     implementation("net.typho:misc_util:1.0.1")
@@ -39,7 +41,9 @@ kotlin {
     jvmToolchain(21)
 }
 
-tasks.jar {
+tasks.shadowJar {
+    archiveClassifier = ""
+
     manifest {
         attributes(
             "Main-Class" to "net.typho.crucible.Crucible"

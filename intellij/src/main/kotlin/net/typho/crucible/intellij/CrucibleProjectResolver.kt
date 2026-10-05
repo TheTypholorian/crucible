@@ -12,8 +12,10 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
+import com.intellij.openapi.externalSystem.model.task.TaskData
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
 import com.intellij.openapi.module.GeneralModuleType
+import com.jetbrains.rd.generator.nova.GenerationSpec.Companion.nullIfEmpty
 import net.typho.crucible.ide.data.CrucibleIDEData
 import net.typho.crucible.ide.data.DependencyPathType
 import net.typho.crucible.ide.data.SourceSetType
@@ -31,8 +33,7 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
         listener: ExternalSystemTaskNotificationListener
     ): DataNode<ProjectData> {
         val projectPath = Paths.get(projectPath).absolute()
-        val infoPath = projectPath.resolve(".crucible").resolve("ide.json")
-        val info = JsonFormat().read(CrucibleIDEData.CODEC, infoPath.readText())
+        val info = JsonFormat().read(CrucibleIDEData.CODEC, projectPath.resolve(".crucible").resolve("ide.json").readText())
 
         return DataNode(
             ProjectKeys.PROJECT,
@@ -44,7 +45,7 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
             ),
             null
         ).apply {
-            addChild(DataNode(
+            createChild(
                 ProjectKeys.MODULE,
                 ModuleData(
                     info.projectName,
@@ -53,10 +54,9 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
                     info.projectName,
                     projectPath.toString(),
                     projectPath.toString()
-                ),
-                this
+                )
             ).apply {
-                addChild(DataNode(
+                createChild(
                     ProjectKeys.CONTENT_ROOT,
                     ContentRootData(SYSTEM_ID, projectPath.toString()).apply {
                         for (set in info.sourceSets) {
@@ -65,12 +65,11 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
                                 SourceSetType.RESOURCES -> if (set.generated) ExternalSystemSourceType.RESOURCE_GENERATED else ExternalSystemSourceType.RESOURCE
                             }, set.path)
                         }
-                    },
-                    this
-                ))
+                    }
+                )
 
                 for (dep in info.dependencies) {
-                    addChild(DataNode(
+                    createChild(
                         ProjectKeys.LIBRARY_DEPENDENCY,
                         LibraryDependencyData(
                             data,
@@ -87,18 +86,30 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
                                 }
                             },
                             LibraryLevel.PROJECT
-                        ),
-                        this
-                    ))
+                        )
+                    )
                 }
-            })
+
+                for (task in info.tasks) {
+                    createChild(
+                        ProjectKeys.TASK,
+                        TaskData(
+                            SYSTEM_ID,
+                            task.id,
+                            projectPath.toString(),
+                            task.description
+                        ).apply {
+                            group = task.group
+                            println(this)
+                        }
+                    )
+                }
+            }
         }
     }
 
     override fun cancelTask(
         taskId: ExternalSystemTaskId,
         listener: ExternalSystemTaskNotificationListener
-    ): Boolean {
-        TODO()
-    }
+    ) = false // TODO task cancelling
 }

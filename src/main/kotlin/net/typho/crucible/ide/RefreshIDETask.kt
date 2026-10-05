@@ -26,7 +26,8 @@ object RefreshIDETask : Task<Unit> {
                     )
                 }
             },
-            Crucible.dependencies
+            Crucible.dependencies,
+            Task.STATIC.entries.map { (name, task) -> CrucibleIDEData.Task(name, task.group, task.description) }
         )
         output.parent.createDirectories()
         output.writeText(JsonFormat().write(CrucibleIDEData.CODEC, data))
