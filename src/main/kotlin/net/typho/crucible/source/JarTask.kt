@@ -16,6 +16,9 @@ open class JarTask(
     inputs: () -> List<Path>,
     output: () -> Path
 ) : Task<Unit> {
+    override val group: String
+        get() = "build"
+
     val inputs by Crucible.finalizeOnRead(inputs)
     val output by Crucible.finalizeOnRead(output)
 
@@ -52,5 +55,8 @@ open class JarTask(
 
             append(".jar")
         })
-    })
+    }) {
+        override val description: String
+            get() = "Default jar task"
+    }
 }

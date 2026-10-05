@@ -11,7 +11,6 @@ plugins {
     id("net.typho.typho_publish") version "1.0.4" apply false
 }
 rootProject.name = "crucible"
-include("scripts")
 include("ide_data")
 
 project(":ide_data").name = "crucible.ide_data"

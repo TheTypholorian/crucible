@@ -1,11 +1,8 @@
 package net.typho.crucible
 
-import net.typho.crucible.deps.Classpath
 import net.typho.crucible.deps.Dependencies
 import net.typho.crucible.deps.Repositories
-import net.typho.crucible.deps.Repository.Companion.find
 import net.typho.crucible.error.ConfigScriptException
-import net.typho.crucible.error.DependencyNotFoundException
 import net.typho.crucible.script.ProjectConfigScript
 import net.typho.crucible.task.Task
 import net.typho.data_util.impl.PropertiesFormat
@@ -102,12 +99,14 @@ object Crucible {
     @JvmStatic
     val globalFolder by finalizeOnRead { System.getProperty("crucible.global_folder")?.let { Path.of(it) } ?: Path.of(System.getProperty("user.home")).resolve(".crucible") }
     @JvmStatic
-    val cacheFolder by finalizeOnRead { globalFolder.resolve("caches") }
+    val globalCacheFolder by finalizeOnRead { globalFolder.resolve("caches") }
     @JvmStatic
-    val mavenCacheFolder by finalizeOnRead { cacheFolder.resolve("maven") }
+    val mavenCacheFolder by finalizeOnRead { globalCacheFolder.resolve("maven") }
 
     @JvmStatic
-    val projectCacheFolder by finalizeOnRead { projectRoot.resolve(".crucible") }
+    val projectCacheFolder = projectRoot.resolve(".crucible")
+    @JvmStatic
+    val ideInfoFile = projectCacheFolder.resolve("ide.json")
     @JvmStatic
     val sourceInputFolder by finalizeOnRead { projectRoot.resolve("src") }
 

@@ -9,6 +9,11 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteRecursively
 
 object CompileTask : Task.RunOnce<List<Path>>() {
+    override val group: String
+        get() = "build"
+    override val description: String
+        get() = "Compiles all source sets and moves their contents into the build folder"
+
     @OptIn(ExperimentalPathApi::class)
     override fun invokeImpl(): List<Path> {
         return SourceSet.all.resolve().map {

@@ -2,17 +2,18 @@ package net.typho.crucible.ide
 
 import net.typho.crucible.Crucible
 import net.typho.crucible.ide.data.CrucibleIDEData
-import net.typho.crucible.ide.data.DependencyPathType
 import net.typho.crucible.source.SourceSet
 import net.typho.crucible.task.Task
 import net.typho.data_util.impl.JsonFormat
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
-import kotlin.io.path.name
 import kotlin.io.path.writeText
 
 object RefreshIDETask : Task<Unit> {
-    val output by lazy { Crucible.projectCacheFolder.resolve("ide.json") }
+    override val group: String
+        get() = "ide"
+    override val description: String
+        get() = "Outputs the ide info (project name, source sets, dependencies, and tasks) to ${Crucible.ideInfoFile}"
 
     override fun invoke() {
         val data = CrucibleIDEData(
@@ -26,10 +27,10 @@ object RefreshIDETask : Task<Unit> {
                     )
                 }
             },
-            Crucible.dependencies,
+            Crucible.dependencies(),
             Task.STATIC.entries.map { (name, task) -> CrucibleIDEData.Task(name, task.group, task.description) }
         )
-        output.parent.createDirectories()
-        output.writeText(JsonFormat().write(CrucibleIDEData.CODEC, data))
+        Crucible.ideInfoFile.parent.createDirectories()
+        Crucible.ideInfoFile.writeText(JsonFormat().write(CrucibleIDEData.CODEC, data))
     }
 }

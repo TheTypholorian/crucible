@@ -15,7 +15,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.TaskData
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
 import com.intellij.openapi.module.GeneralModuleType
-import com.jetbrains.rd.generator.nova.GenerationSpec.Companion.nullIfEmpty
 import net.typho.crucible.ide.data.CrucibleIDEData
 import net.typho.crucible.ide.data.DependencyPathType
 import net.typho.crucible.ide.data.SourceSetType
@@ -32,6 +31,8 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
         settings: CrucibleSystemManager.ExecutionSettings?,
         listener: ExternalSystemTaskNotificationListener
     ): DataNode<ProjectData> {
+        CrucibleSystemTaskManager.run(projectPath, id, listOf("refresh_ide"), listener)
+
         val projectPath = Paths.get(projectPath).absolute()
         val info = JsonFormat().read(CrucibleIDEData.CODEC, projectPath.resolve(".crucible").resolve("ide.json").readText())
 
@@ -100,7 +101,6 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
                             task.description
                         ).apply {
                             group = task.group
-                            println(this)
                         }
                     )
                 }

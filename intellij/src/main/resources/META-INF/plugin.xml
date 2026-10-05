@@ -29,6 +29,8 @@
         <externalSystemManager implementation="net.typho.crucible.intellij.CrucibleSystemManager" />
         <externalSystemUnlinkedProjectAware implementation="net.typho.crucible.intellij.CrucibleUnlinkedProjectAware" />
 
+        <toolWindow id="Crucible" anchor="right" icon="com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons.FAILED_E_ICON" factoryClass="net.typho.crucible.intellij.CrucibleToolWindowFactory" />
+
         <configurationType implementation="net.typho.crucible.intellij.CrucibleTaskConfigurationType"/>
 
         <registryKey key="CRUCIBLE.system.in.process"

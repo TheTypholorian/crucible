@@ -49,6 +49,10 @@ tasks.shadowJar {
             "Main-Class" to "net.typho.crucible.Crucible"
         )
     }
+
+    doLast {
+        archiveFile.get().asFile.copyTo(File("test/crucible.jar"), overwrite = true)
+    }
 }
 
 idea {

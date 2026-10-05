@@ -71,16 +71,6 @@ class CrucibleSystemManager : ExternalSystemManager<
     )
 
     override fun enhanceRemoteProcessing(parameters: SimpleJavaParameters) {
-        /*
-        val loader = CrucibleSystemManager::class.java.classLoader
-
-        if (loader is PluginClassLoader) {
-            parameters.classPath.addAll(loader.getLibDirectories().flatMap { it.walk() }.map {
-                println("LIB: $it")
-                it.absolutePathString()
-            })
-        }
-         */
     }
 
     override fun getProjectRepresentationName(

@@ -12,15 +12,21 @@ open class JavaExecTask(
     javaArgs: () -> List<Pair<String, String>> = { listOf() },
     programArgs: () -> List<String> = { listOf() }
 ) : Task<Unit> {
+    override val group: String
+        get() = "run"
+
     val classPath by Crucible.finalizeOnRead(classpath)
     val mainClass by Crucible.finalizeOnRead(mainClass)
     val javaArgs by Crucible.finalizeOnRead(javaArgs)
     val programArgs by Crucible.finalizeOnRead(programArgs)
 
     override fun invoke() {
-        val process = ProcessBuilder(
-            listOf("java") + (javaArgs + ("cp" to classPath.toString())).flatMap { listOf("-${it.first}", it.second) } + listOf(mainClass) + programArgs
-        )
+        val process = ProcessBuilder(buildList {
+            add("java")
+            addAll((javaArgs + ("cp" to classPath.toString())).flatMap { listOf("-${it.first}", it.second) })
+            add(mainClass)
+            addAll(programArgs)
+        })
         LOG.debug("Launching java process, command: ${process.command().joinToString(separator = " ") { if (it.any { it.isWhitespace() }) "\"$it\"" else it }}")
         val exitCode = process.inheritIO()
             .start()

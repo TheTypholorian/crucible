@@ -1,6 +1,7 @@
 package net.typho.crucible.deps
 
 import net.typho.crucible.Crucible
+import net.typho.crucible.Lazy
 import net.typho.crucible.deps.Repository.Companion.find
 import net.typho.crucible.error.DependencyNotFoundException
 import net.typho.crucible.ide.data.Dependency
@@ -9,11 +10,16 @@ import java.nio.file.Paths
 
 class Dependencies(
     private val repositories: Repositories
-) : ArrayList<Dependency>() {
+) : ArrayList<Lazy<Dependency>>() {
     val classpath: Classpath
-        get() = Classpath(flatMap { it.paths.filter { it.type == DependencyPathType.BINARY }.map { Paths.get(it.path) } })
+        get() = Classpath(this().flatMap { it.paths.filter { it.type == DependencyPathType.BINARY }.map { Paths.get(it.path) } })
 
-    fun add(name: DependencyName) = add(repositories.find(name) ?: throw DependencyNotFoundException("Cannot find dependency '${name.coordinates}', searched in repositories:\n\t${Crucible.repositories.joinToString(separator = "\n\t")}"))
+    @JvmName("get")
+    operator fun invoke() = map { it() }
+
+    fun add(dependency: () -> Dependency) = add(Lazy(dependency))
+
+    fun add(name: DependencyName) = add { repositories.find(name) ?: throw DependencyNotFoundException("Cannot find dependency '${name.coordinates}', searched in repositories:\n\t${Crucible.repositories.joinToString(separator = "\n\t")}") }
 
     fun add(
         group: String,
