@@ -1,6 +1,8 @@
 package net.typho.crucible.source
 
 import net.typho.crucible.Crucible
+import net.typho.crucible.property.ListProperty
+import net.typho.crucible.property.Property
 import net.typho.crucible.task.Task
 import java.io.File
 import java.nio.file.Path
@@ -12,15 +14,12 @@ import kotlin.io.path.outputStream
 import kotlin.io.path.relativeTo
 import kotlin.io.path.walk
 
-open class JarTask(
-    inputs: () -> List<Path>,
-    output: () -> Path
-) : Task<Unit> {
+open class JarTask : Task<Unit> {
     override val group: String
         get() = "build"
 
-    val inputs by Crucible.finalizeOnRead(inputs)
-    val output by Crucible.finalizeOnRead(output)
+    val inputs = ListProperty<Path>().finalizeOnRead()
+    val output = Property<Path>().finalizeOnRead()
 
     override fun invoke() {
         output.parent.createDirectories()

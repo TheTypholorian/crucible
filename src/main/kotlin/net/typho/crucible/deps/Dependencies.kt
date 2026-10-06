@@ -12,7 +12,7 @@ class Dependencies(
     private val repositories: Repositories
 ) : ArrayList<Lazy<Dependency>>() {
     val classpath: Classpath
-        get() = Classpath(this().flatMap { it.paths.filter { it.type == DependencyPathType.BINARY }.map { Paths.get(it.path) } })
+        get() = Classpath(this().flatMap { it.paths.filter { it.type == DependencyPathType.BINARY }.map { Path(it.path) } })
 
     @JvmName("get")
     operator fun invoke() = map { it() }

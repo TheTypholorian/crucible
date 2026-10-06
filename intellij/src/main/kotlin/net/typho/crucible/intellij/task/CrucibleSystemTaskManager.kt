@@ -23,7 +23,7 @@ class CrucibleSystemTaskManager : ExternalSystemTaskManager<CrucibleSystemManage
                 add("java")
                 add("--sun-misc-unsafe-memory-access=allow")
                 add("-jar")
-                add(Paths.get(projectPath).resolve("crucible.jar").absolutePathString())
+                add(Path(projectPath).resolve("crucible.jar").absolutePathString())
                 addAll(tasks)
             })
                 .directory(File(projectPath))

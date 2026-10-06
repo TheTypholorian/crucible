@@ -42,7 +42,7 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
             throw ExternalSystemException("Task failed with exit code $exitCode")
         }
 
-        val projectPath = Paths.get(projectPath).absolute()
+        val projectPath = Path(projectPath).absolute()
         val info = JsonFormat().read(CrucibleIDEData.CODEC, projectPath.resolve(".crucible").resolve("ide.json").readText())
 
         return DataNode(

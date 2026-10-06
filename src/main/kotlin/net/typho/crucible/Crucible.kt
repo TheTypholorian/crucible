@@ -3,6 +3,7 @@ package net.typho.crucible
 import net.typho.crucible.deps.Dependencies
 import net.typho.crucible.deps.Repositories
 import net.typho.crucible.error.ConfigScriptException
+import net.typho.crucible.property.Property
 import net.typho.crucible.script.ProjectConfigScript
 import net.typho.crucible.task.Task
 import net.typho.data_util.impl.PropertiesFormat
@@ -12,6 +13,7 @@ import java.nio.file.Paths
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.deleteRecursively
@@ -28,7 +30,7 @@ import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 
 object Crucible {
     init {
-        System.getProperty("crucible.config_files")?.split(File.pathSeparatorChar)?.forEach { loadConfig(Paths.get(it), true) }
+        System.getProperty("crucible.config_files")?.split(File.pathSeparatorChar)?.forEach { loadConfig(Path(it), true) }
     }
 
     fun loadConfig(path: Path, overwrite: Boolean = true) {
@@ -69,7 +71,7 @@ object Crucible {
     }
 
     @JvmStatic
-    val projectRoot by finalizeOnRead { (System.getProperty("crucible.project_root")?.let { Path.of(it) } ?: Path.of("")).absolute() }
+    val projectRoot = Path(System.getProperty("user.dir"))
 
     init {
         loadConfig(projectRoot.resolve("crucible.properties"), false)
@@ -87,37 +89,37 @@ object Crucible {
     @JvmField
     var stacktrace = debug || System.getProperty("crucible.stacktrace") == "true"
     @JvmStatic
-    val kotlinVersion by finalizeOnRead { System.getProperty("crucible.kotlin_version") ?: "2.4.0" }
+    val kotlinVersion = Property { System.getProperty("crucible.kotlin_version") ?: "2.4.0" }.finalizeOnRead()
 
     @JvmStatic
-    var projectGroup by finalizeOnRead { System.getProperty("crucible.project_group") ?: "" }
+    var projectGroup = Property { System.getProperty("crucible.project_group") ?: "" }.finalizeOnRead()
     @JvmStatic
-    var projectName by finalizeOnRead { System.getProperty("crucible.project_name") ?: projectRoot.name }
+    var projectName = Property { System.getProperty("crucible.project_name") ?: projectRoot.name }.finalizeOnRead()
     @JvmStatic
-    var projectVersion by finalizeOnRead { System.getProperty("crucible.project_version") ?: "" }
+    var projectVersion = Property { System.getProperty("crucible.project_version") ?: "" }.finalizeOnRead()
 
     @JvmStatic
-    val globalFolder by finalizeOnRead { System.getProperty("crucible.global_folder")?.let { Path.of(it) } ?: Path.of(System.getProperty("user.home")).resolve(".crucible") }
+    val globalFolder = Property { System.getProperty("crucible.global_folder")?.let { Path(it) } ?: Path(System.getProperty("user.home")).resolve(".crucible") }.finalizeOnRead()
     @JvmStatic
-    val globalCacheFolder by finalizeOnRead { globalFolder.resolve("caches") }
+    val globalCacheFolder = Property { globalFolder.value.resolve("caches") }.finalizeOnRead()
     @JvmStatic
-    val mavenCacheFolder by finalizeOnRead { globalCacheFolder.resolve("maven") }
+    val mavenCacheFolder = Property { globalCacheFolder.value.resolve("maven") }.finalizeOnRead()
 
     @JvmStatic
     val projectCacheFolder = projectRoot.resolve(".crucible")
     @JvmStatic
     val ideInfoFile = projectCacheFolder.resolve("ide.json")
     @JvmStatic
-    val sourceInputFolder by finalizeOnRead { projectRoot.resolve("src") }
+    val sourceInputFolder = Property { projectRoot.resolve("src") }
 
     @JvmStatic
-    val buildFolder by finalizeOnRead { System.getProperty("crucible.build_folder")?.let { Path.of(it).absolute() } ?: projectRoot.resolve("build") }
+    val buildFolder = Property { System.getProperty("crucible.build_folder")?.let { Path(it).absolute() } ?: projectRoot.resolve("build") }.finalizeOnRead()
     @JvmStatic
-    val jarOutputFolder by finalizeOnRead { buildFolder.resolve("jars") }
+    val jarOutputFolder = Property { buildFolder.value.resolve("jars") }.finalizeOnRead()
     @JvmStatic
-    val sourceOutputFolder by finalizeOnRead { buildFolder.resolve("src") }
+    val sourceOutputFolder = Property { buildFolder.value.resolve("src") }.finalizeOnRead()
     @JvmStatic
-    val configScriptFile by finalizeOnRead { System.getProperty("crucible.config_script")?.let { Path.of(it).absolute() } ?: projectRoot.resolve("crucible.kts") }
+    val configScriptFile = Property { System.getProperty("crucible.config_script")?.let { Path(it).absolute() } ?: projectRoot.resolve("crucible.kts") }.finalizeOnRead()
 
     @JvmField
     val repositories = Repositories()

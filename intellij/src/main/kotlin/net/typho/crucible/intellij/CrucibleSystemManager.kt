@@ -74,7 +74,7 @@ class CrucibleSystemManager : ExternalSystemManager<
     override fun getProjectRepresentationName(
         targetProjectPath: String,
         rootProjectPath: String?
-    ) = Paths.get(targetProjectPath).parent.name
+    ) = Path(targetProjectPath).parent.name
 
     override fun getExternalProjectConfigDescriptor() = null
 
