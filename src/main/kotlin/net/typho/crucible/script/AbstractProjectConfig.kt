@@ -21,9 +21,21 @@ abstract class AbstractProjectConfig {
 
     fun <T : Task<*>> getTask(name: String, type: Class<T>) = Task.get(name, type)
 
-    fun registerTask(name: String, task: Task<*>) {
+    fun <T : Task<*>> registerTask(name: String, task: T): T {
         Task.STATIC.put(name, task)?.let { old ->
             throw IllegalArgumentException("Task $old is already registered under the name '$name' (tried to register $task)")
         }
+
+        return task
+    }
+
+    fun <T : Task<*>> registerTask(name: String, task: Class<T>, config: T.() -> Unit): T {
+        val task = task.getConstructor().newInstance()
+        config(task)
+        return registerTask(name, task)
+    }
+
+    inline fun <reified T : Task<*>> registerTask(name: String, noinline config: T.() -> Unit): T {
+        return registerTask(name, T::class.java, config)
     }
 }

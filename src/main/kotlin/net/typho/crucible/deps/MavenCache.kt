@@ -13,7 +13,7 @@ object MavenCache : TransferListener {
     val system = RepositorySystemSupplier().get()
     @JvmField
     val session = system.createSessionBuilder()
-        .withLocalRepositoryBaseDirectories(Crucible.mavenCacheFolder)
+        .withLocalRepositoryBaseDirectories(Crucible.mavenCacheFolder())
         .withTransferListener(this)
         .build()
     @JvmField

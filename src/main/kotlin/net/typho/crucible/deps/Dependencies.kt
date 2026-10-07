@@ -7,6 +7,7 @@ import net.typho.crucible.error.DependencyNotFoundException
 import net.typho.crucible.ide.data.Dependency
 import net.typho.crucible.ide.data.DependencyPathType
 import java.nio.file.Paths
+import kotlin.io.path.Path
 
 class Dependencies(
     private val repositories: Repositories
@@ -29,5 +30,5 @@ class Dependencies(
 
     fun add(coordinates: String) = add(DependencyName(coordinates))
 
-    fun kotlin(module: String, version: String = Crucible.kotlinVersion) = add(DependencyName("org.jetbrains.kotlin:kotlin-$module:$version"))
+    fun kotlin(module: String, version: String = Crucible.kotlinVersion()) = add(DependencyName("org.jetbrains.kotlin:kotlin-$module:$version"))
 }

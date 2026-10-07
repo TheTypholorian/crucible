@@ -13,7 +13,7 @@ object ResourcesSourceSet : SourceSet() {
     override fun compile() {
         inputs.forEach {
             if (it.exists()) {
-                it.copyToRecursively(output, followLinks = true, overwrite = true)
+                it.copyToRecursively(output(), followLinks = true, overwrite = true)
             }
         }
     }

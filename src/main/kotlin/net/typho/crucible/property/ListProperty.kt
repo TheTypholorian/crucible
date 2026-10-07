@@ -1,84 +1,83 @@
 package net.typho.crucible.property
 
+import java.util.function.Supplier
 import java.util.function.UnaryOperator
 
-open class ListProperty<V : Any> : Property<List<V>>, MutableList<V> {
-    @JvmField
-    protected var safeMutable = false
-    override var value0: List<V>?
-        get() = super.value0
-        set(value) {
-            safeMutable = false
-            super.value0 = value
-        }
-
+open class ListProperty<V> : Property<List<V>>, MutableCollection<V> {
     constructor() : super()
 
     constructor(vararg values: V) : this(listOf(*values))
 
-    constructor(value: List<V>?) : super(value)
+    constructor(value: List<V>) : super(value)
 
-    constructor(supplier: () -> List<V>) : super(supplier)
+    constructor(supplier: Supplier<List<V>>) : super(supplier)
 
-    protected fun <R> util(op: MutableList<V>.() -> R): R {
-        val list = if (safeMutable) {
-            value0 as MutableList<V>
-        } else {
-            value0?.toMutableList() ?: mutableListOf()
-        }
-
-        val r = op(list)
-
-        value0 = list
-        safeMutable = true
-
-        return r
+    override fun transmute(op: UnaryOperator<List<V>>) {
+        value0 = value0?.map(op) ?: LazyValue { op.apply(listOf()) }
     }
 
-    override fun map(func: UnaryOperator<List<V>>) = ListProperty { func.apply(value) }
+    override fun map(func: UnaryOperator<List<V>>) = ListProperty { func.apply(get()) }
 
     override fun finalizeOnRead() = super.finalizeOnRead() as ListProperty<V>
 
     override val size: Int
-        get() = value.size
+        get() = get().size
 
-    override fun get(index: Int) = value[index]
+    override fun isEmpty() = get().isEmpty()
 
-    override fun listIterator() = util { listIterator() }
+    override fun contains(element: V) = get().contains(element)
 
-    override fun listIterator(index: Int) = util { listIterator(index) }
+    override fun iterator() = object : MutableIterator<V> {
+        val iterator = get().iterator()
 
-    override fun subList(fromIndex: Int, toIndex: Int) = util { subList(fromIndex, toIndex) }
+        override fun remove() {
+            throw UnsupportedOperationException()
+        }
 
-    override fun isEmpty() = value.isEmpty()
+        override fun hasNext() = iterator.hasNext()
 
-    override fun contains(element: V) = value.contains(element)
+        override fun next() = iterator.next()
+    }
 
-    override fun iterator() = util { iterator() }
+    override fun containsAll(elements: Collection<V>) = get().containsAll(elements)
 
-    override fun containsAll(elements: Collection<V>) = value.containsAll(elements)
+    override fun add(element: V): Boolean {
+        transmute { it + element }
+        return true
+    }
 
-    override fun indexOf(element: V) = value.indexOf(element)
+    open fun add(element: Supplier<V>): Boolean {
+        transmute { it + element.get() }
+        return true
+    }
 
-    override fun lastIndexOf(element: V) = value.lastIndexOf(element)
+    override fun addAll(elements: Collection<V>): Boolean {
+        val elements = elements.toList()
+        transmute { it + elements }
+        return true
+    }
 
-    override fun add(element: V) = util { add(element) }
+    fun addAll(elements: Supplier<Collection<V>>): Boolean {
+        transmute { it + elements.get() }
+        return true
+    }
 
-    override fun add(index: Int, element: V) = util { add(index, element) }
+    override fun clear() {
+        set(listOf())
+    }
 
-    override fun addAll(elements: Collection<V>) = util { addAll(elements) }
+    override fun remove(element: V): Boolean {
+        transmute { it - element }
+        return true
+    }
 
-    override fun addAll(index: Int, elements: Collection<V>) = util { addAll(index, elements) }
+    override fun removeAll(elements: Collection<V>): Boolean {
+        transmute { it - elements.toSet() }
+        return true
+    }
 
-    override fun clear() = util { clear() }
-
-    override fun remove(element: V) = util { remove(element) }
-
-    override fun removeAll(elements: Collection<V>) = util { removeAll(elements) }
-
-    override fun removeAt(index: Int): V = util { removeAt(index) }
-
-    override fun retainAll(elements: Collection<V>) = util { retainAll(elements) }
-
-    override fun set(index: Int, element: V): V = util { set(index, element) }
+    override fun retainAll(elements: Collection<V>): Boolean {
+        transmute { it.filter { it in elements } }
+        return true
+    }
 }

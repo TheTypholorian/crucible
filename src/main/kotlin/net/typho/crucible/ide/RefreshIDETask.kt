@@ -17,9 +17,9 @@ object RefreshIDETask : Task<Unit> {
 
     override fun invoke() {
         val data = CrucibleIDEData(
-            Crucible.projectName,
+            Crucible.projectName(),
             SourceSet.all.resolve().flatMap { set ->
-                set.event.inputs.map { path ->
+                set.event.inputs().map { path ->
                     CrucibleIDEData.SourceSet(
                         set.event.type,
                         false, // TODO

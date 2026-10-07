@@ -25,9 +25,9 @@ object KotlinSourceSet : SourceSet() {
     override fun compile() {
         val compiler = K2JVMCompiler()
         val args = compiler.createArguments().apply {
-            freeArgs = inputs.map { it.absolutePathString() }
-            javaSourceRoots = JavaSourceSet.inputs.map { it.absolutePathString() }.toTypedArray()
-            destination = output.absolutePathString()
+            freeArgs = inputs().map { it.absolutePathString() }
+            javaSourceRoots = JavaSourceSet.inputs().map { it.absolutePathString() }.toTypedArray()
+            destination = output().absolutePathString()
             jvmTarget = "21" // TODO
             classpath = Crucible.dependencies.classpath.toString()
             noStdlib = true

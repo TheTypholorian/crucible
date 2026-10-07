@@ -1,24 +1,40 @@
 package net.typho.crucible.property
 
-import java.util.function.Function
+import java.util.function.Consumer
+import java.util.function.Supplier
 import java.util.function.UnaryOperator
 
-open class Property<V : Any> : () -> V {
+open class Property<V> : Consumer<V>, Supplier<V> {
     protected enum class Finalization {
         NONE,
         ENABLED,
         FINAL
     }
 
+    protected interface Value<V> {
+        val value: V
+
+        fun map(func: UnaryOperator<V>): Value<V>
+    }
+
+    protected open class SimpleValue<V>(
+        override val value: V
+    ) : Value<V> {
+        override fun map(func: UnaryOperator<V>) = SimpleValue(func.apply(value))
+    }
+
+    protected open class LazyValue<V>(
+        supplier: Supplier<V>
+    ) : Value<V> {
+        override val value: V by lazy { supplier.get() }
+
+        override fun map(func: UnaryOperator<V>) = LazyValue { func.apply(value) }
+    }
+
     @JvmField
     protected var finalization = Finalization.NONE
-    @JvmField
-    protected val supplier: (() -> V)?
 
-    protected open var value0: V? = null
-        get() {
-            return field ?: supplier?.let { it().also { field = it } }
-        }
+    protected open var value0: Value<V>? = null
         set(value) {
             if (finalization == Finalization.FINAL) {
                 throw IllegalStateException("Property has already been read")
@@ -26,32 +42,52 @@ open class Property<V : Any> : () -> V {
 
             field = value
         }
-    open var value: V
-        get() {
-            if (finalization == Finalization.ENABLED) {
-                finalization = Finalization.FINAL
-            }
 
-            return value0 ?: throw NullPointerException("Property has not been initialized")
-        }
-        set(value) {
-            value0 = value
-        }
+    constructor()
 
-    constructor() : this(null)
+    constructor(value: V) : this(SimpleValue(value))
 
-    constructor(value: V?) {
+    constructor(supplier: Supplier<V>) : this(LazyValue(supplier))
+
+    protected constructor(value: Value<V>) {
         value0 = value
-        supplier = null
     }
 
-    constructor(supplier: () -> V) {
-        this.supplier = supplier
+    protected open fun getHolderOrThrow() = value0 ?: throw NullPointerException("Property has not been initialized")
+
+    open fun hasValue() = value0 != null
+
+    override fun get(): V {
+        if (finalization == Finalization.ENABLED) {
+            finalization = Finalization.FINAL
+        }
+
+        return getHolderOrThrow().value
     }
 
-    override fun invoke() = value
+    open operator fun invoke() = get()
 
-    open fun map(func: UnaryOperator<V>) = Property { func.apply(value) }
+    open fun set(value: V) {
+        value0 = SimpleValue(value)
+    }
+
+    open operator fun invoke(value: V) {
+        set(value)
+    }
+
+    override fun accept(value: V) {
+        set(value)
+    }
+
+    open fun setLazy(supplier: Supplier<V>) {
+        value0 = LazyValue(supplier)
+    }
+
+    open fun transmute(op: UnaryOperator<V>) {
+        value0 = getHolderOrThrow().map(op)
+    }
+
+    open fun map(func: UnaryOperator<V>) = Property<V> { func.apply(get()) }
 
     open fun finalizeOnRead(): Property<V> {
         if (finalization == Finalization.NONE) {
@@ -59,13 +95,5 @@ open class Property<V : Any> : () -> V {
         }
 
         return this
-    }
-
-    open fun transmuteIfSet(func: UnaryOperator<V>) {
-        value0?.let { value0 = func.apply(it) }
-    }
-
-    open fun transmute(func: Function<V?, V>) {
-        value0 = func.apply(value0)
     }
 }

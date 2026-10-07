@@ -13,7 +13,7 @@ dependencies {
     add("net.typho:asm_util:1.3.6")
 }
 
-registerTask("run", JavaExecTask(
-    classpath = { dependencies.classpath + CompileTask() },
-    mainClass = { "Test" }
-))
+registerTask<JavaExecTask>("run") {
+    classpath.setLazy { dependencies.classpath + CompileTask() }
+    mainClass.set("Test")
+}
