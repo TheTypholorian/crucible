@@ -31,7 +31,7 @@ object RefreshIDETask : Task<Unit>() {
                 }
             },
             Crucible.dependencies(),
-            Task.STATIC.entries.filter { it.value.group != "internal" }.map { (name, task) -> CrucibleIDEData.Task(name, task.group, task.description) }
+            Task.all.entries.filter { it.value.group != "internal" }.map { (name, task) -> CrucibleIDEData.Task(name, task.group, task.description) }
         )
 
         Crucible.ideInfoFile.parent.createDirectories()

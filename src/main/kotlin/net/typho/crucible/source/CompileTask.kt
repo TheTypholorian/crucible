@@ -14,15 +14,11 @@ open class CompileTask : Task.RunOnce<List<Path>>() {
     @JvmField
     val sourceSets = ListProperty<SourceSet>().finalizeOnRead()
 
-    @OptIn(ExperimentalPathApi::class)
     override fun run(): List<Path> {
-        return sourceSets().map {
-            val output = it.output()
-            output.deleteRecursively()
-            output.createDirectories()
-            it.invoke()
-            output
-        }
+        return sourceSets().fold(listOf<SourceSet>()) { previous, set ->
+            set.invoke(sourceSets(), previous)
+            previous + set
+        }.map { it.output() }
     }
 
     object Main : CompileTask() {

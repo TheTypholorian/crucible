@@ -13,21 +13,31 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
+import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.createDirectories
+import kotlin.io.path.deleteRecursively
 
-object KotlinSourceSet : SourceSet() {
+open class KotlinSourceSet : SourceSet() {
     override val id = "kotlin"
     override val type = SourceSetType.CODE
 
     override fun postRegister(event: EventGraph<String, *>.Event) {
-        event.before(JavaSourceSet)
+        event.before(JavaSourceSet.Main)
     }
 
-    override fun compile() {
+    @OptIn(ExperimentalPathApi::class)
+    override fun compile(all: List<SourceSet>, previous: List<SourceSet>) {
+        output().deleteRecursively()
+        output().createDirectories()
+
         val compiler = K2JVMCompiler()
         val args = compiler.createArguments().apply {
             freeArgs = inputs().map { it.absolutePathString() }
-            javaSourceRoots = JavaSourceSet.inputs().map { it.absolutePathString() }.toTypedArray()
+            javaSourceRoots = all.filterIsInstance<JavaSourceSet>()
+                .flatMap { it.inputs() }
+                .map { it.absolutePathString() }
+                .toTypedArray()
             destination = output().absolutePathString()
             jvmTarget = Crucible.javaVersion()
             classpath = Crucible.dependencies.paths.classpathString()
@@ -67,4 +77,6 @@ object KotlinSourceSet : SourceSet() {
             ExitCode.OOM_ERROR -> throw OutOfMemoryError()
         }
     }
+
+    object Main : KotlinSourceSet()
 }

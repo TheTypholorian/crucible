@@ -9,13 +9,13 @@ import net.typho.misc_util.EventGraph
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 
-abstract class SourceSet : EventGraph.SelfAware<String>, () -> Path {
+abstract class SourceSet : EventGraph.SelfAware<String> {
     companion object {
         @JvmField
         val all = EventGraph<String, SourceSet>(
-            KotlinSourceSet,
-            JavaSourceSet,
-            ResourcesSourceSet
+            KotlinSourceSet.Main,
+            JavaSourceSet.Main,
+            ResourcesSourceSet.Main
         )
     }
 
@@ -26,11 +26,11 @@ abstract class SourceSet : EventGraph.SelfAware<String>, () -> Path {
     @JvmField
     val output = Property<Path> { Crucible.sourceOutputFolder().resolve(id) }
 
-    override operator fun invoke(): Path {
-        LOG.debug("Compiling source type '$id' to ${output().absolutePathString()}")
-        compile()
+    open operator fun invoke(all: List<SourceSet>, previous: List<SourceSet>): Path {
+        LOG.debug("Compiling source set '$id' to ${output().absolutePathString()}")
+        compile(all, previous)
         return output()
     }
 
-    protected abstract fun compile()
+    protected abstract fun compile(all: List<SourceSet>, previous: List<SourceSet>)
 }

@@ -5,13 +5,11 @@ import net.typho.crucible.deps.PrintClasspathTask
 import net.typho.crucible.ide.RefreshIDETask
 import net.typho.crucible.source.CompileTask
 import net.typho.crucible.source.JarTask
-import net.typho.crucible.task.Task
-import kotlin.collections.set
 
 abstract class Task<R> : () -> R {
     companion object {
         @JvmField
-        val STATIC = mutableMapOf<String, Task<*>>(
+        val all = mutableMapOf<String, Task<*>>(
             "compile" to CompileTask.Main,
             "jar" to JarTask.Main,
             "print_classpath" to PrintClasspathTask,
@@ -19,7 +17,7 @@ abstract class Task<R> : () -> R {
         )
 
         @JvmStatic
-        fun get(name: String): Task<*> = STATIC[name] ?: throw NullPointerException("Task '$name' does not exist")
+        fun get(name: String): Task<*> = all[name] ?: throw NullPointerException("Task '$name' does not exist")
 
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
@@ -47,7 +45,7 @@ abstract class Task<R> : () -> R {
     protected abstract fun run(): R
 
     override fun toString(): String {
-        return STATIC.entries.firstOrNull { (key, value) -> value === this }?.key ?: super.toString()
+        return all.entries.firstOrNull { (key, value) -> value === this }?.key ?: super.toString()
     }
 
     abstract class RunOnce<R> : Task<R>() {

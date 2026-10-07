@@ -26,7 +26,7 @@ abstract class AbstractProjectConfig {
     fun <T : Task<*>> getTask(name: String, type: Class<T>) = Task.get(name, type)
 
     fun <T : Task<*>> registerTask(name: String, task: T): T {
-        Task.STATIC.put(name, task)?.let { old ->
+        Task.all.put(name, task)?.let { old ->
             throw IllegalArgumentException("Task $old is already registered under the name '$name' (tried to register $task)")
         }
 
@@ -52,7 +52,7 @@ abstract class AbstractProjectConfig {
             baseClass(KotlinType(AbstractProjectConfig::class))
             jvm {
                 jvmTarget("21")
-                dependenciesFromCurrentContext()
+                dependenciesFromCurrentContext(wholeClasspath = true)
             }
             ide { acceptedLocations(ScriptAcceptedLocation.Everywhere) }
         }

@@ -2,6 +2,7 @@ package net.typho.crucible
 
 import net.typho.crucible.deps.Dependencies
 import net.typho.crucible.deps.Repositories
+import net.typho.crucible.error.CompilationException
 import net.typho.crucible.error.ConfigScriptException
 import net.typho.crucible.property.Property
 import net.typho.crucible.script.AbstractProjectConfig
@@ -27,6 +28,14 @@ import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 
 object Crucible {
     init {
+        Thread.currentThread().uncaughtExceptionHandler = { thread, exception ->
+            if (exception is CompilationException || exception is ConfigScriptException) {
+                LOG.error(exception.message)
+            } else {
+                exception.printStackTrace()
+            }
+        }
+
         System.getProperty("crucible.config_files")?.split(File.pathSeparatorChar)?.forEach { loadConfig(Path(it), true) }
     }
 
