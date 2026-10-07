@@ -9,9 +9,11 @@ abstract class AbstractProjectConfig {
     val repositories by Crucible::repositories
     val dependencies by Crucible::dependencies
 
-    var group by Crucible::projectGroup
-    var name by Crucible::projectName
-    var version by Crucible::projectVersion
+    var group by Crucible.projectGroup
+    var name by Crucible.projectName
+    var version by Crucible.projectVersion
+
+    var javaVersion by Crucible.javaVersion
 
     fun repositories(action: Repositories.() -> Unit) = action(repositories)
 

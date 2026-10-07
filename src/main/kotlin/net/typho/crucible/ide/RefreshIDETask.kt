@@ -9,13 +9,13 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
 
-object RefreshIDETask : Task<Unit> {
+object RefreshIDETask : Task<Unit>() {
     override val group: String
         get() = "internal"
     override val description: String
         get() = "Outputs the ide info (project name, source sets, dependencies, and tasks) to ${Crucible.ideInfoFile}"
 
-    override fun invoke() {
+    override fun run() {
         val data = CrucibleIDEData(
             Crucible.projectName(),
             SourceSet.all.resolve().flatMap { set ->

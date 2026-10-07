@@ -14,6 +14,7 @@ dependencies {
 }
 
 registerTask<JavaExecTask>("run") {
-    classpath.setLazy { dependencies.classpath + CompileTask() }
+    classpath.addAll { dependencies.paths }
+    classpath.addAll(CompileTask.Main)
     mainClass.set("Test")
 }

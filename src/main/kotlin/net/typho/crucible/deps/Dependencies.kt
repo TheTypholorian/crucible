@@ -6,14 +6,14 @@ import net.typho.crucible.deps.Repository.Companion.find
 import net.typho.crucible.error.DependencyNotFoundException
 import net.typho.crucible.ide.data.Dependency
 import net.typho.crucible.ide.data.DependencyPathType
-import java.nio.file.Paths
+import java.nio.file.Path
 import kotlin.io.path.Path
 
 class Dependencies(
     private val repositories: Repositories
 ) : ArrayList<Lazy<Dependency>>() {
-    val classpath: Classpath
-        get() = Classpath(this().flatMap { it.paths.filter { it.type == DependencyPathType.BINARY }.map { Path(it.path) } })
+    val paths: List<Path>
+        get() = this().flatMap { it.paths.filter { it.type == DependencyPathType.BINARY }.map { Path(it.path) } }
 
     @JvmName("get")
     operator fun invoke() = map { it() }

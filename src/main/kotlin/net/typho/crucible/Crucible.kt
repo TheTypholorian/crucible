@@ -1,10 +1,14 @@
 package net.typho.crucible
 
 import net.typho.crucible.deps.Dependencies
+import net.typho.crucible.deps.PrintClasspathTask
 import net.typho.crucible.deps.Repositories
 import net.typho.crucible.error.ConfigScriptException
+import net.typho.crucible.ide.RefreshIDETask
 import net.typho.crucible.property.Property
 import net.typho.crucible.script.ProjectConfigScript
+import net.typho.crucible.source.CompileTask
+import net.typho.crucible.source.JarTask
 import net.typho.crucible.task.Task
 import net.typho.data_util.impl.PropertiesFormat
 import org.jetbrains.kotlin.com.intellij.psi.ResolveState.initial
@@ -68,17 +72,18 @@ object Crucible {
         }
     }
 
-    @JvmField
-    var stacktrace = debug || System.getProperty("crucible.stacktrace") == "true"
     @JvmStatic
     val kotlinVersion = Property<String> { System.getProperty("crucible.kotlin_version") ?: "2.4.0" }.finalizeOnRead()
 
+    @JvmField
+    val projectGroup = Property<String> { System.getProperty("crucible.project_group") ?: "" }.finalizeOnRead()
+    @JvmField
+    val projectName = Property<String> { System.getProperty("crucible.project_name") ?: projectRoot.name }.finalizeOnRead()
+    @JvmField
+    val projectVersion = Property<String> { System.getProperty("crucible.project_version") ?: "" }.finalizeOnRead()
+
     @JvmStatic
-    var projectGroup = Property<String> { System.getProperty("crucible.project_group") ?: "" }.finalizeOnRead()
-    @JvmStatic
-    var projectName = Property<String> { System.getProperty("crucible.project_name") ?: projectRoot.name }.finalizeOnRead()
-    @JvmStatic
-    var projectVersion = Property<String> { System.getProperty("crucible.project_version") ?: "" }.finalizeOnRead()
+    val javaVersion = Property<String> { System.getProperty("crucible.java_version") ?: "21" }.finalizeOnRead()
 
     @JvmStatic
     val globalFolder = Property<Path> { System.getProperty("crucible.global_folder")?.let { Path(it) } ?: Path(System.getProperty("user.home")).resolve(".crucible") }.finalizeOnRead()
@@ -107,16 +112,6 @@ object Crucible {
     val repositories = Repositories()
     @JvmField
     val dependencies = Dependencies(repositories)
-
-    init {
-        Thread.currentThread().uncaughtExceptionHandler = { thread, error ->
-            if (stacktrace) {
-                error.printStackTrace()
-            } else {
-                LOG.error(error.toString())
-            }
-        }
-    }
 
     @JvmStatic
     fun loadConfigScript(path: Path) {
@@ -156,7 +151,6 @@ object Crucible {
         LOG.debug("Finished config phase in ${(System.currentTimeMillis() - startTime) / 1000f} seconds")
 
         for (task in args) {
-            LOG.info("> Executing task '$task'")
             Task.get(task).invoke()
         }
     }

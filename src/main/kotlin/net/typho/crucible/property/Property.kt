@@ -3,8 +3,10 @@ package net.typho.crucible.property
 import java.util.function.Consumer
 import java.util.function.Supplier
 import java.util.function.UnaryOperator
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
-open class Property<V> : Consumer<V>, Supplier<V> {
+open class Property<V> : Consumer<V>, Supplier<V>, ReadWriteProperty<Any?, V> {
     protected enum class Finalization {
         NONE,
         ENABLED,
@@ -14,21 +16,17 @@ open class Property<V> : Consumer<V>, Supplier<V> {
     protected interface Value<V> {
         val value: V
 
-        fun map(func: UnaryOperator<V>): Value<V>
+        fun map(func: UnaryOperator<V>): Value<V> = LazyValue { func.apply(value) }
     }
 
     protected open class SimpleValue<V>(
         override val value: V
-    ) : Value<V> {
-        override fun map(func: UnaryOperator<V>) = SimpleValue(func.apply(value))
-    }
+    ) : Value<V>
 
     protected open class LazyValue<V>(
         supplier: Supplier<V>
     ) : Value<V> {
         override val value: V by lazy { supplier.get() }
-
-        override fun map(func: UnaryOperator<V>) = LazyValue { func.apply(value) }
     }
 
     @JvmField
@@ -52,6 +50,10 @@ open class Property<V> : Consumer<V>, Supplier<V> {
     protected constructor(value: Value<V>) {
         value0 = value
     }
+
+    override fun getValue(thisRef: Any?, property: KProperty<*>) = get()
+
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: V) = set(value)
 
     protected open fun getHolderOrThrow() = value0 ?: throw NullPointerException("Property has not been initialized")
 

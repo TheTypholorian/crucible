@@ -1,6 +1,7 @@
 package net.typho.crucible.source
 
 import net.typho.crucible.Crucible
+import net.typho.crucible.deps.classpathString
 import net.typho.crucible.error.CompilationException
 import net.typho.crucible.error.ToolNotFoundException
 import net.typho.crucible.ide.data.SourceSetType
@@ -21,8 +22,8 @@ object JavaSourceSet : SourceSet() {
         val files = manager.getJavaFileObjectsFromPaths(inputs.flatMap { it.walk() })
         val options = listOf(
             "-d", output().absolutePathString(),
-            "-cp", (Crucible.dependencies.classpath + KotlinSourceSet.output()).toString(),
-            "--release", "21"
+            "-cp", (Crucible.dependencies.paths + listOf(KotlinSourceSet.output())).classpathString(),
+            "--release", Crucible.javaVersion()
         )
         val javaSuccess = javaCompiler.getTask(null, manager, diagnostics::add, options, null, files).call()
 

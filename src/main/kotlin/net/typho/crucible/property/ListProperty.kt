@@ -4,7 +4,7 @@ import java.util.function.Supplier
 import java.util.function.UnaryOperator
 
 open class ListProperty<V> : Property<List<V>>, MutableCollection<V> {
-    constructor() : super()
+    constructor() : this(listOf())
 
     constructor(vararg values: V) : this(listOf(*values))
 

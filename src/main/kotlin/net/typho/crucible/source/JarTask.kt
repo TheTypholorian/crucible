@@ -17,7 +17,7 @@ import kotlin.io.path.outputStream
 import kotlin.io.path.relativeTo
 import kotlin.io.path.walk
 
-open class JarTask : Task<Unit> {
+open class JarTask : Task<Unit>() {
     override val group: String
         get() = "build"
 
@@ -26,7 +26,7 @@ open class JarTask : Task<Unit> {
     @JvmField
     val output = Property<Path>().finalizeOnRead()
 
-    override fun invoke() {
+    override fun run() {
         val output = output()
 
         output.parent.createDirectories()
@@ -61,7 +61,7 @@ open class JarTask : Task<Unit> {
             get() = "Default jar task"
 
         init {
-            inputs.addAll(CompileTask)
+            inputs.addAll(CompileTask.Main)
             output.setLazy {
                 Crucible.jarOutputFolder().resolve(buildString {
                     append(Crucible.projectName())

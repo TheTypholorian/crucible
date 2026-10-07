@@ -2,6 +2,7 @@ package net.typho.crucible.source
 
 import net.typho.crucible.Crucible
 import net.typho.crucible.LOG
+import net.typho.crucible.deps.classpathString
 import net.typho.crucible.error.CompilationException
 import net.typho.crucible.ide.data.SourceSetType
 import net.typho.misc_util.EventGraph
@@ -28,8 +29,8 @@ object KotlinSourceSet : SourceSet() {
             freeArgs = inputs().map { it.absolutePathString() }
             javaSourceRoots = JavaSourceSet.inputs().map { it.absolutePathString() }.toTypedArray()
             destination = output().absolutePathString()
-            jvmTarget = "21" // TODO
-            classpath = Crucible.dependencies.classpath.toString()
+            jvmTarget = Crucible.javaVersion()
+            classpath = Crucible.dependencies.paths.classpathString()
             noStdlib = true
         }
         val errors = mutableListOf<String>()
