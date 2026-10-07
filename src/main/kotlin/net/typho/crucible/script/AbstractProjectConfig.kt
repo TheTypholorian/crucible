@@ -4,6 +4,8 @@ import net.typho.crucible.Crucible
 import net.typho.crucible.deps.Dependencies
 import net.typho.crucible.deps.Repositories
 import net.typho.crucible.task.Task
+import kotlin.script.experimental.api.*
+import kotlin.script.experimental.jvm.*
 
 abstract class AbstractProjectConfig {
     val repositories by Crucible::repositories
@@ -39,5 +41,20 @@ abstract class AbstractProjectConfig {
 
     inline fun <reified T : Task<*>> registerTask(name: String, noinline config: T.() -> Unit): T {
         return registerTask(name, T::class.java, config)
+    }
+
+    companion object {
+        @JvmField
+        val COMP_CONFIG = ScriptCompilationConfiguration {
+            displayName("Crucible Project Config")
+            fileExtension("kts")
+            filePathPattern("(.*/)?([^/]*\\.)?crucible\\.kts")
+            baseClass(KotlinType(AbstractProjectConfig::class))
+            jvm {
+                jvmTarget("21")
+                dependenciesFromCurrentContext()
+            }
+            ide { acceptedLocations(ScriptAcceptedLocation.Everywhere) }
+        }
     }
 }

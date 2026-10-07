@@ -24,6 +24,7 @@ import com.intellij.util.messages.Topic
 import icons.ExternalSystemIcons
 import net.typho.crucible.intellij.task.CrucibleSystemTaskManager
 import java.nio.file.Paths
+import kotlin.io.path.Path
 import kotlin.io.path.name
 
 @JvmField

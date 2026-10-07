@@ -17,12 +17,14 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.TaskData
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
 import com.intellij.openapi.module.GeneralModuleType
+import com.intellij.openapi.project.Project
 import net.typho.crucible.ide.data.CrucibleIDEData
 import net.typho.crucible.ide.data.DependencyPathType
 import net.typho.crucible.ide.data.SourceSetType
 import net.typho.crucible.intellij.task.CrucibleSystemTaskManager
 import net.typho.data_util.impl.JsonFormat
 import java.nio.file.Paths
+import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.readText
 
@@ -50,7 +52,7 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
             ProjectData(
                 SYSTEM_ID,
                 info.projectName,
-                projectPath.resolve(".idea").toString(),
+                projectPath.resolve(Project.DIRECTORY_STORE_FOLDER).toString(),
                 projectPath.toString()
             ),
             null

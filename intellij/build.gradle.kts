@@ -7,7 +7,7 @@ plugins {
 
 dependencies {
     testImplementation(libs.junit)
-    implementation("net.typho:crucible.ide_data:1.0.3") {
+    implementation("net.typho:crucible.ide_data:1.2.0") {
         isTransitive = false
     }
     implementation("net.typho:data_util:1.3.5") {

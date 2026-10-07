@@ -1,21 +1,14 @@
 package net.typho.crucible
 
 import net.typho.crucible.deps.Dependencies
-import net.typho.crucible.deps.PrintClasspathTask
 import net.typho.crucible.deps.Repositories
 import net.typho.crucible.error.ConfigScriptException
-import net.typho.crucible.ide.RefreshIDETask
 import net.typho.crucible.property.Property
-import net.typho.crucible.script.ProjectConfigScript
-import net.typho.crucible.source.CompileTask
-import net.typho.crucible.source.JarTask
+import net.typho.crucible.script.AbstractProjectConfig
 import net.typho.crucible.task.Task
 import net.typho.data_util.impl.PropertiesFormat
-import org.jetbrains.kotlin.com.intellij.psi.ResolveState.initial
 import java.io.File
 import java.nio.file.Path
-import java.nio.file.Paths
-import java.util.function.Supplier
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.io.path.ExperimentalPathApi
@@ -26,8 +19,6 @@ import kotlin.io.path.deleteRecursively
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.readText
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
 import kotlin.script.experimental.api.ScriptDiagnostic
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
 import kotlin.script.experimental.api.SourceCode
@@ -97,6 +88,8 @@ object Crucible {
     @JvmStatic
     val ideInfoFile = projectCacheFolder.resolve("ide.json")
     @JvmStatic
+    val scriptInfoFile = projectCacheFolder.resolve("scripts.bin")
+    @JvmStatic
     val sourceInputFolder = Property<Path> { projectRoot.resolve("src") }
 
     @JvmStatic
@@ -125,7 +118,7 @@ object Crucible {
         LOG.debug("Loading config script ${script.name}")
         val result = BasicJvmScriptingHost().eval(
             script,
-            ProjectConfigScript,
+            AbstractProjectConfig.COMP_CONFIG,
             ScriptEvaluationConfiguration()
         )
 

@@ -8,6 +8,7 @@ import com.intellij.openapi.externalSystem.task.ExternalSystemTaskManager
 import net.typho.crucible.intellij.CrucibleSystemManager
 import java.io.File
 import java.nio.file.Paths
+import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
 class CrucibleSystemTaskManager : ExternalSystemTaskManager<CrucibleSystemManager.ExecutionSettings> {
