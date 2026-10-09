@@ -98,4 +98,9 @@ open class Property<V> : Consumer<V>, Supplier<V>, ReadWriteProperty<Any?, V> {
 
         return this
     }
+
+    @Suppress("SimpleRedundantLet") // V might be nullable
+    override fun toString(): String {
+        return value0?.let { it.value.toString() } ?: "Uninitialized"
+    }
 }

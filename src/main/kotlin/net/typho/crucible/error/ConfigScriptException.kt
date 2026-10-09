@@ -18,5 +18,5 @@ class ConfigScriptException : RuntimeException {
         writableStackTrace
     )
 
-    constructor(report: ScriptDiagnostic) : this(report.render(withSeverity = false))
+    constructor(report: ScriptDiagnostic) : this(report.render(withSeverity = false, withStackTrace = true))
 }

@@ -5,6 +5,7 @@ import net.typho.crucible.deps.classpathString
 import net.typho.crucible.error.CompilationException
 import net.typho.crucible.error.ToolNotFoundException
 import net.typho.crucible.ide.data.SourceSetType
+import net.typho.misc_util.EventGraph
 import javax.tools.Diagnostic
 import javax.tools.JavaFileObject
 import javax.tools.ToolProvider
@@ -17,6 +18,10 @@ import kotlin.io.path.walk
 open class JavaSourceSet : SourceSet() {
     override val id = "java"
     override val type = SourceSetType.CODE
+
+    override fun postRegister(event: EventGraph<String, *>.Event) {
+        event.after(KotlinSourceSet.Main)
+    }
 
     @OptIn(ExperimentalPathApi::class)
     override fun compile(all: List<SourceSet>, previous: List<SourceSet>) {

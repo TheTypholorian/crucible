@@ -2,6 +2,8 @@ package net.typho.crucible.deps
 
 import net.typho.crucible.ide.data.Dependency
 import net.typho.crucible.ide.data.DependencyPathType
+import net.typho.crucible.wrapper.DependencyName
+import net.typho.crucible.wrapper.MavenCache
 import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.artifact.DefaultArtifact
 import org.eclipse.aether.repository.RemoteRepository
@@ -27,7 +29,7 @@ interface Repository {
 
     class Maven(
         @JvmField
-        val repo: RemoteRepository
+        val repo: RemoteRepository // TODO
     ) : Repository {
         constructor(repository: String) : this(RemoteRepository.Builder(repository, "default", repository).build())
 

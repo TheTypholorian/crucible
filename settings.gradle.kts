@@ -12,5 +12,7 @@ plugins {
 }
 rootProject.name = "crucible"
 include("ide_data")
+include("wrapper")
 
 project(":ide_data").name = "crucible.ide_data"
+project(":wrapper").name = "crucible.wrapper"

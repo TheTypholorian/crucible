@@ -1,8 +1,8 @@
 package net.typho.crucible.deps
 
 import net.typho.crucible.Crucible
-import net.typho.crucible.LOG
 import net.typho.crucible.task.Task
+import net.typho.crucible.wrapper.log.info
 import kotlin.io.path.absolutePathString
 
 object PrintClasspathTask : Task<Unit>() {
@@ -13,9 +13,9 @@ object PrintClasspathTask : Task<Unit>() {
 
     override fun run() {
         val classpath = Crucible.dependencies.paths
-        LOG.info("Classpath:")
+        info("Classpath:")
         classpath.forEach { path ->
-            LOG.info("- ${path.absolutePathString()}")
+            info("- ${path.absolutePathString()}")
         }
     }
 }

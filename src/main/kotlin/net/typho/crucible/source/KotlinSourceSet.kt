@@ -1,11 +1,11 @@
 package net.typho.crucible.source
 
 import net.typho.crucible.Crucible
-import net.typho.crucible.LOG
 import net.typho.crucible.deps.classpathString
 import net.typho.crucible.error.CompilationException
 import net.typho.crucible.ide.data.SourceSetType
-import net.typho.misc_util.EventGraph
+import net.typho.crucible.wrapper.log.debug
+import net.typho.crucible.wrapper.log.warn
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
@@ -22,10 +22,6 @@ open class KotlinSourceSet : SourceSet() {
     override val id = "kotlin"
     override val type = SourceSetType.CODE
 
-    override fun postRegister(event: EventGraph<String, *>.Event) {
-        event.before(JavaSourceSet.Main)
-    }
-
     @OptIn(ExperimentalPathApi::class)
     override fun compile(all: List<SourceSet>, previous: List<SourceSet>) {
         output().deleteRecursively()
@@ -40,7 +36,7 @@ open class KotlinSourceSet : SourceSet() {
                 .toTypedArray()
             destination = output().absolutePathString()
             jvmTarget = Crucible.javaVersion()
-            classpath = Crucible.dependencies.paths.classpathString()
+            classpath = (Crucible.dependencies.paths + previous.map { it.output() }).classpathString()
             noStdlib = true
         }
         val errors = mutableListOf<String>()
@@ -61,9 +57,9 @@ open class KotlinSourceSet : SourceSet() {
                     if (severity.isError) {
                         errors.add(message)
                     } else if (severity.isWarning) {
-                        LOG.warn(message)
+                        warn(message)
                     } else {
-                        LOG.debug(message)
+                        debug(message)
                     }
                 }
             },

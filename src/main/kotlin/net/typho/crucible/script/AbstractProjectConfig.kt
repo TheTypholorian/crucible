@@ -4,6 +4,7 @@ import net.typho.crucible.Crucible
 import net.typho.crucible.deps.Dependencies
 import net.typho.crucible.deps.Repositories
 import net.typho.crucible.task.Task
+import kotlin.io.path.toPath
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.jvm.*
 
@@ -54,7 +55,13 @@ abstract class AbstractProjectConfig {
                 jvmTarget("21")
                 dependenciesFromCurrentContext(wholeClasspath = true)
             }
-            ide { acceptedLocations(ScriptAcceptedLocation.Everywhere) }
+            ide {
+                acceptedLocations(ScriptAcceptedLocation.Everywhere)
+
+                AbstractProjectConfig::class.java.protectionDomain?.codeSource?.location?.let { url ->
+                    dependenciesSources(JvmDependency(listOf(url.toURI().toPath().toFile())))
+                }
+            }
         }
     }
 }

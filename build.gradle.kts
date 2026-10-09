@@ -6,7 +6,6 @@ import org.jetbrains.gradle.ext.settings
 plugins {
     kotlin("jvm") version "2.4.0"
     id("org.jetbrains.gradle.plugin.idea-ext") version "1.4.1"
-    id("com.gradleup.shadow") version "9.6.1"
 }
 
 group = "net.typho"
@@ -18,15 +17,20 @@ repositories {
 }
 
 dependencies {
-    implementation("net.typho:crucible.ide_data:1.2.0")
-    implementation("net.typho:data_util:1.3.5")
-    implementation("net.typho:asm_util:1.3.6")
-    implementation("net.typho:misc_util:1.0.1")
+    implementation("net.typho:crucible.ide_data:1.2.0") {
+        isTransitive = false
+    }
+    implementation("net.typho:data_util:1.3.5") {
+        isTransitive = false
+    }
+    implementation("net.typho:misc_util:1.0.1") {
+        isTransitive = false
+    }
 
     implementation(kotlin("compiler-embeddable"))
-    implementation(kotlin("scripting-common"))
     implementation(kotlin("scripting-jvm"))
     implementation(kotlin("scripting-jvm-host"))
+    implementation(project("crucible.wrapper"))
 
     implementation("org.apache.maven:maven-model:3.9.11")
     implementation("org.apache.maven.resolver:maven-resolver-api:2.0.21")
@@ -41,17 +45,11 @@ kotlin {
     jvmToolchain(21)
 }
 
-tasks.shadowJar {
-    archiveClassifier = ""
-
+tasks.jar {
     manifest {
         attributes(
-            "Main-Class" to "net.typho.crucible.Crucible"
+            "Main-Class" to "net.typho.crucible.InvalidLaunchErrorer"
         )
-    }
-
-    doLast {
-        archiveFile.get().asFile.copyTo(File("test/crucible.jar"), overwrite = true)
     }
 }
 

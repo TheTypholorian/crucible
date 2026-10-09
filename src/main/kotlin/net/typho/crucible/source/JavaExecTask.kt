@@ -1,14 +1,12 @@
 package net.typho.crucible.source
 
-import net.typho.crucible.LOG
 import net.typho.crucible.deps.classpathString
 import net.typho.crucible.error.JavaExecException
 import net.typho.crucible.property.ListProperty
 import net.typho.crucible.property.Property
 import net.typho.crucible.task.Task
-import java.io.File
+import net.typho.crucible.wrapper.log.debug
 import java.nio.file.Path
-import kotlin.io.path.absolutePathString
 
 open class JavaExecTask : Task<Unit>() {
     override val group: String
@@ -32,7 +30,7 @@ open class JavaExecTask : Task<Unit>() {
             add(mainClass())
             addAll(programArgs())
         })
-        LOG.debug("Launching java process, command: ${process.command().joinToString(separator = " ") { if (it.any { it.isWhitespace() }) "\"$it\"" else it }}")
+        debug("Launching java process, command: ${process.command().joinToString(separator = " ") { if (it.any { it.isWhitespace() }) "\"$it\"" else it }}")
         val exitCode = process.inheritIO()
             .start()
             .waitFor()

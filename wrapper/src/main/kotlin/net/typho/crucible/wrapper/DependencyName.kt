@@ -1,4 +1,4 @@
-package net.typho.crucible.deps
+package net.typho.crucible.wrapper
 
 import org.eclipse.aether.artifact.Artifact
 
@@ -51,4 +51,8 @@ value class DependencyName(
 
         append(version)
     })
+
+    override fun toString(): String {
+        return coordinates
+    }
 }

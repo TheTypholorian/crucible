@@ -1,10 +1,11 @@
 package net.typho.crucible.task
 
-import net.typho.crucible.LOG
 import net.typho.crucible.deps.PrintClasspathTask
 import net.typho.crucible.ide.RefreshIDETask
 import net.typho.crucible.source.CompileTask
 import net.typho.crucible.source.JarTask
+import net.typho.crucible.wrapper.log.debug
+import net.typho.crucible.wrapper.log.info
 
 abstract class Task<R> : () -> R {
     companion object {
@@ -38,7 +39,7 @@ abstract class Task<R> : () -> R {
         get() = ""
 
     override operator fun invoke(): R {
-        LOG.info("> Executing task '$this'")
+        info("> Executing task '$this'")
         return run()
     }
 
@@ -56,7 +57,7 @@ abstract class Task<R> : () -> R {
         @Suppress("UNCHECKED_CAST")
         final override fun invoke(): R {
             if (value !== Uninitialized) {
-                LOG.debug("Using cached value of task '$this'")
+                debug("Using cached value of task '$this'")
                 return value as R
             }
 
