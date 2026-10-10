@@ -3,8 +3,10 @@ package net.typho.crucible.script
 import net.typho.crucible.Crucible
 import net.typho.crucible.deps.Dependencies
 import net.typho.crucible.deps.Repositories
+import net.typho.crucible.plugins.Plugins
 import net.typho.crucible.task.Task
-import kotlin.io.path.toPath
+import net.typho.crucible.wrapper.CrucibleClassLoader
+import net.typho.crucible.wrapper.log.error
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.jvm.*
 
@@ -12,9 +14,9 @@ abstract class AbstractProjectConfig {
     val repositories by Crucible::repositories
     val dependencies by Crucible::dependencies
 
-    var group by Crucible.projectGroup
-    var name by Crucible.projectName
-    var version by Crucible.projectVersion
+    var group by Crucible.group
+    var name by Crucible.name
+    var version by Crucible.version
 
     var javaVersion by Crucible.javaVersion
 
@@ -46,21 +48,44 @@ abstract class AbstractProjectConfig {
 
     companion object {
         @JvmField
-        val COMP_CONFIG = ScriptCompilationConfiguration {
+        val compilationConfig = ScriptCompilationConfiguration {
             displayName("Crucible Project Config")
             fileExtension("kts")
             filePathPattern("(.*/)?([^/]*\\.)?crucible\\.kts")
             baseClass(KotlinType(AbstractProjectConfig::class))
+            defaultImports.append("net.typho.crucible.*", "net.typho.crucible.deps.*", "net.typho.crucible.plugins.*", "net.typho.crucible.property.*", "net.typho.crucible.source.*", "net.typho.crucible.task.*")
+
             jvm {
                 jvmTarget("21")
-                dependenciesFromCurrentContext(wholeClasspath = true)
+                //dependenciesFromCurrentContext(wholeClasspath = true)
+                dependenciesFromClassloader(classLoader = CrucibleClassLoader, wholeClasspath = true, unpackJarCollections = true)
             }
-            ide {
-                acceptedLocations(ScriptAcceptedLocation.Everywhere)
 
-                AbstractProjectConfig::class.java.protectionDomain?.codeSource?.location?.let { url ->
-                    dependenciesSources(JvmDependency(listOf(url.toURI().toPath().toFile())))
-                }
+            ide {
+                acceptedLocations(ScriptAcceptedLocation.Project)
+            }
+
+            refineConfiguration {
+                onAnnotations(Plugins::class, handler = ::processPlugins)
+            }
+        }
+
+        @JvmStatic
+        fun processPlugins(context: ScriptConfigurationRefinementContext): ResultWithDiagnostics<ScriptCompilationConfiguration> {
+            try {
+                val plugins = context.collectedData
+                    ?.get(ScriptCollectedData.collectedAnnotations)
+                    ?.map { it.annotation }
+                    ?.filterIsInstance<Plugins>()
+                    ?.flatMap { CrucibleClassLoader.addLibraries(it.repositories.asList(), it.plugins.asList()) }
+                    ?.map { it.toFile() }
+
+                return context.compilationConfiguration
+                    .with { updateClasspath(plugins) }
+                    .asSuccess()
+            } catch (e: Throwable) {
+                error("Script plugin resolution error", e)
+                return ResultWithDiagnostics.Failure(e.asDiagnostics())
             }
         }
     }

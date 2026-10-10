@@ -8,6 +8,7 @@ import org.eclipse.aether.repository.RemoteRepository
 import org.eclipse.aether.resolution.DependencyRequest
 import java.net.URL
 import java.net.URLClassLoader
+import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.outputStream
 
@@ -23,17 +24,18 @@ object CrucibleClassLoader : URLClassLoader(
 ) {
     public override fun addURL(url: URL) = super.addURL(url)
 
-    fun addLibraries(repositories: List<String>, artifacts: List<String>) {
+    fun addLibraries(repositories: List<String>, artifacts: List<String>): List<Path> {
         val request = CollectRequest()
         request.repositories = repositories.map { RemoteRepository.Builder(it, "default", it).build() }
         request.dependencies = artifacts.map { Dependency(DefaultArtifact(it), "runtime") }
 
         val dependencies = MavenCache.system.collectDependencies(MavenCache.session, request)
-        MavenCache.system.resolveDependencies(MavenCache.session, DependencyRequest(dependencies.root, null))
+        return MavenCache.system.resolveDependencies(MavenCache.session, DependencyRequest(dependencies.root, null))
             .artifactResults
-            .forEach {
+            .map {
                 debug("Loading library ${it.artifact.groupId}:${it.artifact.artifactId}:${it.artifact.version}")
                 addURL(it.artifact.path.toUri().toURL())
+                it.artifact.path
             }
     }
 

@@ -4,7 +4,7 @@ import org.jetbrains.gradle.ext.runConfigurations
 import org.jetbrains.gradle.ext.settings
 
 plugins {
-    kotlin("jvm") version "2.4.0"
+    kotlin("jvm") version "2.4.21"
     id("org.jetbrains.gradle.plugin.idea-ext") version "1.4.1"
 }
 

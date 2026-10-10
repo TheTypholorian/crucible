@@ -6,7 +6,6 @@ import net.typho.crucible.property.Property
 import net.typho.crucible.task.Task
 import java.io.File
 import java.nio.file.Path
-import java.util.Map.entry
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 import kotlin.io.path.createDirectories
@@ -64,11 +63,11 @@ open class JarTask : Task<Unit>() {
             inputs.addAll(CompileTask.Main)
             output.setLazy {
                 Crucible.jarOutputFolder().resolve(buildString {
-                    append(Crucible.projectName())
+                    append(Crucible.name())
 
-                    if (Crucible.projectVersion().isNotEmpty()) {
+                    if (Crucible.version().isNotEmpty()) {
                         append('-')
-                        append(Crucible.projectVersion())
+                        append(Crucible.version())
                     }
 
                     append(".jar")

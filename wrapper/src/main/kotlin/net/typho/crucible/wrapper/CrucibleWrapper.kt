@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationTargetException
 import kotlin.io.path.Path
 
 object CrucibleWrapper {
-    const val KOTLIN_VERSION = "2.4.0"
+    const val KOTLIN_VERSION = "2.4.21"
 
     @JvmField
     val projectRoot = System.getProperty("crucible.project_root")?.let { Path(it) } ?: Path(System.getProperty("user.dir"))
@@ -27,6 +27,7 @@ object CrucibleWrapper {
                 "org.jetbrains.kotlin:kotlin-scripting-jvm:${KOTLIN_VERSION}",
                 "org.jetbrains.kotlin:kotlin-scripting-jvm-host:${KOTLIN_VERSION}",
                 "org.jetbrains.kotlin:kotlin-reflect:${KOTLIN_VERSION}",
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0",
                 "net.typho:crucible.ide_data:1.2.0",
                 "net.typho:data_util:1.3.5",
                 "net.typho:misc_util:1.0.1"

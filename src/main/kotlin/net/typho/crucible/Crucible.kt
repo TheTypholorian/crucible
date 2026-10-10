@@ -2,7 +2,6 @@ package net.typho.crucible
 
 import net.typho.crucible.deps.Dependencies
 import net.typho.crucible.deps.Repositories
-import net.typho.crucible.deps.Repository
 import net.typho.crucible.error.CompilationException
 import net.typho.crucible.error.ConfigScriptException
 import net.typho.crucible.property.Property
@@ -25,7 +24,10 @@ import kotlin.io.path.name
 import kotlin.io.path.readText
 import kotlin.script.experimental.api.ScriptDiagnostic
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
+import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.StringScriptSource
+import kotlin.script.experimental.jvm.baseClassLoader
+import kotlin.script.experimental.jvm.jvm
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 
 object Crucible {
@@ -69,11 +71,11 @@ object Crucible {
     }
 
     @JvmField
-    val projectGroup = Property<String> { System.getProperty("crucible.project_group") ?: "" }.finalizeOnRead()
+    val group = Property<String> { System.getProperty("crucible.project_group") ?: "" }.finalizeOnRead()
     @JvmField
-    val projectName = Property<String> { System.getProperty("crucible.project_name") ?: projectRoot.name }.finalizeOnRead()
+    val name = Property<String> { System.getProperty("crucible.project_name") ?: projectRoot.name }.finalizeOnRead()
     @JvmField
-    val projectVersion = Property<String> { System.getProperty("crucible.project_version") ?: "" }.finalizeOnRead()
+    val version = Property<String> { System.getProperty("crucible.project_version") ?: "" }.finalizeOnRead()
 
     @JvmField
     val javaVersion = Property<String> { System.getProperty("crucible.java_version") ?: "21" }.finalizeOnRead()
@@ -109,10 +111,18 @@ object Crucible {
     @JvmStatic
     fun loadConfigScript(code: String, path: String) {
         debug("Loading config script $path")
-        val result = BasicJvmScriptingHost().eval(
+        val result = BasicJvmScriptingHost(ScriptingHostConfiguration {
+            jvm {
+                baseClassLoader.put(CrucibleClassLoader)
+            }
+        }).eval(
             StringScriptSource(code, path),
-            AbstractProjectConfig.COMP_CONFIG,
-            ScriptEvaluationConfiguration()
+            AbstractProjectConfig.compilationConfig,
+            ScriptEvaluationConfiguration {
+                jvm {
+                    baseClassLoader.put(CrucibleClassLoader)
+                }
+            }
         )
 
         result.reports.forEach {

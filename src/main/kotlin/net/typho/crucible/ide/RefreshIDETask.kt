@@ -20,7 +20,7 @@ object RefreshIDETask : Task<Unit>() {
 
     override fun run() {
         val data = CrucibleIDEData(
-            Crucible.projectName(),
+            Crucible.name(),
             SourceSet.all.resolve().flatMap { set ->
                 set.event.inputs().map { path ->
                     CrucibleIDEData.SourceSet(
@@ -39,7 +39,7 @@ object RefreshIDETask : Task<Unit>() {
 
         Crucible.scriptInfoFile.parent.createDirectories()
         ObjectOutputStream(Crucible.scriptInfoFile.outputStream()).use {
-            it.writeObject(listOf(AbstractProjectConfig.COMP_CONFIG))
+            it.writeObject(listOf(AbstractProjectConfig.compilationConfig))
         }
     }
 }

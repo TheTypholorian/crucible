@@ -1,5 +1,4 @@
-import net.typho.crucible.source.CompileTask
-import net.typho.crucible.source.JavaExecTask
+import net.typho.data_util.impl.JsonFormat
 
 repositories {
     mavenCentral()
