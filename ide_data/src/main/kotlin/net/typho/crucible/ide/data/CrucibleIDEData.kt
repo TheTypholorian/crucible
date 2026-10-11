@@ -6,17 +6,31 @@ data class CrucibleIDEData(
     @JvmField
     val projectName: String,
     @JvmField
-    val sourceSets: List<SourceSet>,
-    @JvmField
-    val dependencies: List<Dependency>,
-    @JvmField
-    val tasks: List<Task>,
+    val modules: List<Module>,
     @JvmField
     val scriptFiles: List<String>
 ) {
     companion object {
         @JvmField
         val CODEC = Codec.reflect(CrucibleIDEData::class.java)
+    }
+
+    data class Module(
+        @JvmField
+        val name: String,
+        @JvmField
+        val path: String,
+        @JvmField
+        val sourceSets: List<SourceSet>,
+        @JvmField
+        val dependencies: List<Dependency>,
+        @JvmField
+        val tasks: List<Task>
+    ) {
+        companion object {
+            @JvmField
+            val CODEC = Codec.reflect(Module::class.java)
+        }
     }
 
     data class SourceSet(

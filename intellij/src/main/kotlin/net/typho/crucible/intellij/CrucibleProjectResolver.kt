@@ -1,10 +1,12 @@
 package net.typho.crucible.intellij
 
+import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.ProcessOutputType
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.ProjectKeys
+import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings
 import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import com.intellij.openapi.externalSystem.model.project.LibraryData
@@ -14,27 +16,24 @@ import com.intellij.openapi.externalSystem.model.project.LibraryPathType
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.TaskData
+import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
+import com.intellij.openapi.externalSystem.task.TaskCallback
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
+import com.intellij.openapi.externalSystem.util.task.TaskExecutionSpec
 import com.intellij.openapi.module.GeneralModuleType
-import com.intellij.openapi.project.BaseProjectDirectories.Companion.getBaseDirectories
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiManager
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import net.typho.crucible.ide.data.CrucibleIDEData
 import net.typho.crucible.ide.data.DependencyPathType
 import net.typho.crucible.ide.data.SourceSetType
-import net.typho.crucible.intellij.task.CrucibleSystemTaskManager
 import net.typho.data_util.impl.JsonFormat
 import org.jetbrains.kotlin.idea.core.script.k2.ReloadScriptConfigurationService
-import org.jetbrains.kotlin.idea.core.script.k2.configurations.DefaultKotlinScriptEntityProvider
-import org.jetbrains.kotlin.idea.core.script.k2.definitions.ScriptDefinitionsModificationTracker
-import org.jetbrains.kotlin.idea.core.script.k2.highlighting.KotlinScriptResolutionService
-import org.jetbrains.kotlin.idea.core.script.k2.highlighting.KotlinScriptResolutionService.Companion
 import org.jetbrains.kotlin.psi.KtFile
 import kotlin.io.path.Path
 import kotlin.io.path.absolute
@@ -48,13 +47,32 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
         settings: CrucibleSystemManager.ExecutionSettings?,
         listener: ExternalSystemTaskNotificationListener
     ): DataNode<ProjectData> {
-        val exitCode = CrucibleSystemTaskManager.run(projectPath, id, listOf("refresh_ide"), listener)
+        val start = System.currentTimeMillis()
 
-        if (exitCode == 0) {
-            listener.onTaskOutput(id, "Build finished", ProcessOutputType.STDOUT)
-        } else {
-            throw ExternalSystemException("Task failed with exit code $exitCode")
-        }
+        ExternalSystemUtil.runTask(
+            TaskExecutionSpec.create()
+                .withProject(id.project)
+                .withSystemId(SYSTEM_ID)
+                .withSettings(ExternalSystemTaskExecutionSettings().apply {
+                    externalSystemIdString = SYSTEM_ID.id
+                    externalProjectPath = projectPath
+                    taskNames = listOf("refresh_ide")
+                })
+                .withExecutorId(DefaultRunExecutor.EXECUTOR_ID)
+                .withProgressExecutionMode(ProgressExecutionMode.NO_PROGRESS_SYNC)
+                .withCallback(object : TaskCallback {
+                    override fun onSuccess() {
+                        listener.onTaskOutput(id, "\nBuild finished in ${System.currentTimeMillis() - start} ms", ProcessOutputType.STDOUT)
+                    }
+
+                    override fun onFailure() {
+                        throw ExternalSystemException("Task failed")
+                    }
+                })
+                .withListener(ForwardingTaskNotificationListener(id, listener))
+                .navigateToError()
+                .build()
+        )
 
         val projectPath = Path(projectPath).absolute()
         val info = JsonFormat().read(CrucibleIDEData.CODEC, projectPath.resolve(".crucible").resolve("ide.json").readText())
@@ -91,63 +109,65 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
             ),
             null
         ).apply {
-            createChild(
-                ProjectKeys.MODULE,
-                ModuleData(
-                    info.projectName,
-                    SYSTEM_ID,
-                    GeneralModuleType.TYPE_ID,
-                    info.projectName,
-                    projectPath.toString(),
-                    projectPath.toString()
-                )
-            ).apply {
+            for (module in info.modules) {
                 createChild(
-                    ProjectKeys.CONTENT_ROOT,
-                    ContentRootData(SYSTEM_ID, projectPath.toString()).apply {
-                        for (set in info.sourceSets) {
-                            storePath(when (set.type) {
-                                SourceSetType.CODE -> if (set.generated) ExternalSystemSourceType.SOURCE_GENERATED else ExternalSystemSourceType.SOURCE
-                                SourceSetType.RESOURCES -> if (set.generated) ExternalSystemSourceType.RESOURCE_GENERATED else ExternalSystemSourceType.RESOURCE
-                            }, set.path)
-                        }
-                    }
-                )
-
-                for (dep in info.dependencies) {
+                    ProjectKeys.MODULE,
+                    ModuleData(
+                        module.name,
+                        SYSTEM_ID,
+                        GeneralModuleType.TYPE_ID,
+                        module.name,
+                        module.path,
+                        module.path
+                    )
+                ).apply {
                     createChild(
-                        ProjectKeys.LIBRARY_DEPENDENCY,
-                        LibraryDependencyData(
-                            data,
-                            LibraryData(
-                                SYSTEM_ID,
-                                dep.name
-                            ).apply {
-                                for (path in dep.paths) {
-                                    addPath(when (path.type) {
-                                        DependencyPathType.BINARY -> LibraryPathType.BINARY
-                                        DependencyPathType.SOURCE -> LibraryPathType.SOURCE
-                                        DependencyPathType.DOC -> LibraryPathType.DOC
-                                    }, path.path)
-                                }
-                            },
-                            LibraryLevel.PROJECT
+                        ProjectKeys.CONTENT_ROOT,
+                        ContentRootData(SYSTEM_ID, projectPath.toString()).apply {
+                            for (set in module.sourceSets) {
+                                storePath(when (set.type) {
+                                    SourceSetType.CODE -> if (set.generated) ExternalSystemSourceType.SOURCE_GENERATED else ExternalSystemSourceType.SOURCE
+                                    SourceSetType.RESOURCES -> if (set.generated) ExternalSystemSourceType.RESOURCE_GENERATED else ExternalSystemSourceType.RESOURCE
+                                }, set.path)
+                            }
+                        }
+                    )
+
+                    for (dep in module.dependencies) {
+                        createChild(
+                            ProjectKeys.LIBRARY_DEPENDENCY,
+                            LibraryDependencyData(
+                                data,
+                                LibraryData(
+                                    SYSTEM_ID,
+                                    dep.name
+                                ).apply {
+                                    for (path in dep.paths) {
+                                        addPath(when (path.type) {
+                                            DependencyPathType.BINARY -> LibraryPathType.BINARY
+                                            DependencyPathType.SOURCE -> LibraryPathType.SOURCE
+                                            DependencyPathType.DOC -> LibraryPathType.DOC
+                                        }, path.path)
+                                    }
+                                },
+                                LibraryLevel.PROJECT
+                            )
                         )
-                    )
-                }
+                    }
 
-                for (task in info.tasks) {
-                    createChild(
-                        ProjectKeys.TASK,
-                        TaskData(
-                            SYSTEM_ID,
-                            task.id,
-                            projectPath.toString(),
-                            task.description
-                        ).apply {
-                            group = task.group
-                        }
-                    )
+                    for (task in module.tasks) {
+                        createChild(
+                            ProjectKeys.TASK,
+                            TaskData(
+                                SYSTEM_ID,
+                                task.id,
+                                projectPath.toString(),
+                                task.description
+                            ).apply {
+                                group = task.group
+                            }
+                        )
+                    }
                 }
             }
         }

@@ -42,7 +42,14 @@ object CrucibleWrapper {
     }
 
     @JvmField
-    val mavenCacheFolder = System.getProperty("crucible.maven_cache")?.let { Path(it) } ?: Path(System.getProperty("user.home"), ".crucible", "caches", "maven")
+    val globalCacheFolder = System.getProperty("crucible.global_cache_folder")?.let { Path(it) } ?: Path(System.getProperty("user.home"), ".crucible")
+
+    init {
+        loadConfig(globalCacheFolder.resolve("crucible.properties"), false)
+    }
+
+    @JvmField
+    val mavenCacheFolder = System.getProperty("crucible.maven_cache_folder")?.let { Path(it) } ?: globalCacheFolder.resolve("caches").resolve("maven")
     @JvmField
     var debug = System.getProperty("crucible.debug") == "true" || System.getProperty("intellij.debug.agent") == "true"
     @JvmField

@@ -21,17 +21,21 @@ object RefreshIDETask : Task<Unit>() {
     override fun run() {
         val data = CrucibleIDEData(
             Crucible.name(),
-            SourceSet.all.resolve().flatMap { set ->
-                set.event.inputs().map { path ->
-                    CrucibleIDEData.SourceSet(
-                        set.event.type,
-                        false, // TODO
-                        path.absolutePathString()
-                    )
-                }
-            },
-            Crucible.dependencies(),
-            Task.all.entries.filter { it.value.group != "internal" }.map { (name, task) -> CrucibleIDEData.Task(name, task.group, task.description) },
+            listOf(CrucibleIDEData.Module( // TODO modules
+                Crucible.name(),
+                Crucible.projectRoot.absolutePathString(),
+                SourceSet.all.resolve().flatMap { set ->
+                    set.event.inputs().map { path ->
+                        CrucibleIDEData.SourceSet(
+                            set.event.type,
+                            false, // TODO
+                            path.absolutePathString()
+                        )
+                    }
+                },
+                Crucible.dependencies(),
+                Task.all.entries.filter { it.value.group != "internal" }.map { (name, task) -> CrucibleIDEData.Task(name, task.group, task.description) }
+            )),
             Crucible.loadedScripts.toList()
         )
 
