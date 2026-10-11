@@ -10,11 +10,8 @@ import net.typho.crucible.task.Task
 import net.typho.crucible.wrapper.CrucibleClassLoader
 import net.typho.crucible.wrapper.CrucibleWrapper
 import net.typho.crucible.wrapper.log.*
-import net.typho.data_util.impl.PropertiesFormat
 import java.io.File
 import java.nio.file.Path
-import kotlin.collections.component1
-import kotlin.collections.component2
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
 import kotlin.io.path.absolute
@@ -40,35 +37,13 @@ object Crucible {
             }
         }
 
-        System.getProperty("crucible.config_files")?.split(File.pathSeparatorChar)?.forEach { loadConfig(Path(it), true) }
-    }
-
-    fun loadConfig(path: Path, overwrite: Boolean = true) {
-        if (path.exists()) {
-            val properties = PropertiesFormat().read(path.readText())
-            val target = System.getProperties()
-
-            properties.forEach { (key, value) ->
-                if (overwrite) {
-                    target.put(key, value)?.let { old ->
-                        warn("Property $key was already set to $old but ${path.name} set it to $value")
-                    }
-                } else {
-                    target.putIfAbsent(key, value)
-                }
-            }
-        }
+        System.getProperty("crucible.config_files")?.split(File.pathSeparatorChar)?.forEach { CrucibleWrapper.loadConfig(Path(it), true) }
     }
 
     @JvmField
     val projectRoot = CrucibleWrapper.projectRoot
     @JvmField
-    val projectCacheFolder = CrucibleWrapper.projectCacheFolder
-
-    init {
-        loadConfig(projectRoot.resolve("crucible.properties"), false)
-        debugEnabled = System.getProperty("crucible.debug") == "true" || System.getProperty("intellij.debug.agent") == "true"
-    }
+    val projectCacheFolder = projectRoot.resolve(".crucible")
 
     @JvmField
     val group = Property<String> { System.getProperty("crucible.project_group") ?: "" }.finalizeOnRead()
@@ -101,6 +76,8 @@ object Crucible {
     @JvmField
     val dependencies = Dependencies(repositories)
 
+    internal val loadedScripts = mutableSetOf<String>()
+
     @JvmStatic
     fun loadConfigScript(path: Path) {
         if (path.exists()) {
@@ -111,13 +88,14 @@ object Crucible {
     @JvmStatic
     fun loadConfigScript(code: String, path: String) {
         debug("Loading config script $path")
+        loadedScripts.add(path)
         val result = BasicJvmScriptingHost(ScriptingHostConfiguration {
             jvm {
                 baseClassLoader.put(CrucibleClassLoader)
             }
         }).eval(
             StringScriptSource(code, path),
-            AbstractProjectConfig.compilationConfig,
+            AbstractProjectConfig.createCompilationConfig(),
             ScriptEvaluationConfiguration {
                 jvm {
                     baseClassLoader.put(CrucibleClassLoader)

@@ -31,7 +31,8 @@ object RefreshIDETask : Task<Unit>() {
                 }
             },
             Crucible.dependencies(),
-            Task.all.entries.filter { it.value.group != "internal" }.map { (name, task) -> CrucibleIDEData.Task(name, task.group, task.description) }
+            Task.all.entries.filter { it.value.group != "internal" }.map { (name, task) -> CrucibleIDEData.Task(name, task.group, task.description) },
+            Crucible.loadedScripts.toList()
         )
 
         Crucible.ideInfoFile.parent.createDirectories()
@@ -39,7 +40,7 @@ object RefreshIDETask : Task<Unit>() {
 
         Crucible.scriptInfoFile.parent.createDirectories()
         ObjectOutputStream(Crucible.scriptInfoFile.outputStream()).use {
-            it.writeObject(listOf(AbstractProjectConfig.compilationConfig))
+            it.writeObject(listOf(AbstractProjectConfig.createCompilationConfig(true)))
         }
     }
 }

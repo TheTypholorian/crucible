@@ -1,6 +1,7 @@
 package net.typho.crucible.intellij
 
 import com.intellij.execution.process.ProcessOutputType
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -17,13 +18,24 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.TaskData
 import com.intellij.openapi.externalSystem.service.project.ExternalSystemProjectResolver
 import com.intellij.openapi.module.GeneralModuleType
+import com.intellij.openapi.project.BaseProjectDirectories.Companion.getBaseDirectories
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.psi.PsiManager
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import net.typho.crucible.ide.data.CrucibleIDEData
 import net.typho.crucible.ide.data.DependencyPathType
 import net.typho.crucible.ide.data.SourceSetType
 import net.typho.crucible.intellij.task.CrucibleSystemTaskManager
 import net.typho.data_util.impl.JsonFormat
-import java.nio.file.Paths
+import org.jetbrains.kotlin.idea.core.script.k2.ReloadScriptConfigurationService
+import org.jetbrains.kotlin.idea.core.script.k2.configurations.DefaultKotlinScriptEntityProvider
+import org.jetbrains.kotlin.idea.core.script.k2.definitions.ScriptDefinitionsModificationTracker
+import org.jetbrains.kotlin.idea.core.script.k2.highlighting.KotlinScriptResolutionService
+import org.jetbrains.kotlin.idea.core.script.k2.highlighting.KotlinScriptResolutionService.Companion
+import org.jetbrains.kotlin.psi.KtFile
 import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.readText
@@ -46,6 +58,28 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
 
         val projectPath = Path(projectPath).absolute()
         val info = JsonFormat().read(CrucibleIDEData.CODEC, projectPath.resolve(".crucible").resolve("ide.json").readText())
+
+        runBlocking {
+            for (path in info.scriptFiles) {
+                val file = LocalFileSystem.getInstance().findFileByPath(path)
+
+                if (file == null) {
+                    System.err.println("Supposed script file '$path' does not exist, skipping reload")
+                    continue
+                }
+
+                val ktFile = readAction {
+                    PsiManager.getInstance(id.project).findFile(file) as? KtFile
+                }
+
+                if (ktFile == null) {
+                    System.err.println("Supposed script file '$file' is not a KtFile, skipping reload")
+                    continue
+                }
+
+                ReloadScriptConfigurationService.getInstance(id.project).reloadScriptData(ktFile)
+            }
+        }
 
         return DataNode(
             ProjectKeys.PROJECT,

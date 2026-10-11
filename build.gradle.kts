@@ -2,14 +2,22 @@ import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.gradle.ext.Application
 import org.jetbrains.gradle.ext.runConfigurations
 import org.jetbrains.gradle.ext.settings
+import java.util.Properties
 
 plugins {
     kotlin("jvm") version "2.4.21"
     id("org.jetbrains.gradle.plugin.idea-ext") version "1.4.1"
+    `maven-publish`
 }
 
 group = "net.typho"
-version = "1.0.0"
+version = "0.1.${System.currentTimeMillis() / 1000}"
+
+val propertiesFile = project.file("test/crucible.properties")
+val properties = Properties()
+propertiesFile.inputStream().use { properties.load(it) }
+properties["crucible.version"] = project.version
+propertiesFile.outputStream().use { properties.store(it, null) }
 
 repositories {
     mavenCentral()
@@ -17,28 +25,22 @@ repositories {
 }
 
 dependencies {
-    implementation("net.typho:crucible.ide_data:1.2.0") {
-        isTransitive = false
-    }
-    implementation("net.typho:data_util:1.3.5") {
-        isTransitive = false
-    }
-    implementation("net.typho:misc_util:1.0.1") {
-        isTransitive = false
-    }
+    implementation("net.typho:crucible.ide_data:1.3.0")
+    implementation("net.typho:data_util:1.3.5")
+    compileOnly("net.typho:misc_util:1.0.2")
 
     implementation(kotlin("compiler-embeddable"))
     implementation(kotlin("scripting-jvm"))
     implementation(kotlin("scripting-jvm-host"))
-    implementation(project("crucible.wrapper"))
+    compileOnly(project("crucible.wrapper"))
 
-    implementation("org.apache.maven:maven-model:3.9.11")
-    implementation("org.apache.maven.resolver:maven-resolver-api:2.0.21")
-    implementation("org.apache.maven.resolver:maven-resolver-util:2.0.21")
-    implementation("org.apache.maven.resolver:maven-resolver-impl:2.0.21")
-    implementation("org.apache.maven.resolver:maven-resolver-connector-basic:2.0.21")
-    implementation("org.apache.maven.resolver:maven-resolver-transport-file:2.0.21")
-    implementation("org.apache.maven.resolver:maven-resolver-supplier-mvn3:2.0.21")
+    compileOnly("org.apache.maven:maven-model:3.9.11")
+    compileOnly("org.apache.maven.resolver:maven-resolver-api:2.0.21")
+    compileOnly("org.apache.maven.resolver:maven-resolver-util:2.0.21")
+    compileOnly("org.apache.maven.resolver:maven-resolver-impl:2.0.21")
+    compileOnly("org.apache.maven.resolver:maven-resolver-connector-basic:2.0.21")
+    compileOnly("org.apache.maven.resolver:maven-resolver-transport-file:2.0.21")
+    compileOnly("org.apache.maven.resolver:maven-resolver-supplier-mvn3:2.0.21")
 }
 
 kotlin {
@@ -50,6 +52,16 @@ tasks.jar {
         attributes(
             "Main-Class" to "net.typho.crucible.InvalidLaunchErrorer"
         )
+    }
+}
+
+java {
+    withSourcesJar()
+}
+
+publishing {
+    publications.create<MavenPublication>("maven") {
+        from(components["java"])
     }
 }
 

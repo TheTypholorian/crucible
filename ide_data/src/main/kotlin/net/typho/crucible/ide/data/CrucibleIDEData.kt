@@ -10,7 +10,9 @@ data class CrucibleIDEData(
     @JvmField
     val dependencies: List<Dependency>,
     @JvmField
-    val tasks: List<Task>
+    val tasks: List<Task>,
+    @JvmField
+    val scriptFiles: List<String>
 ) {
     companion object {
         @JvmField

@@ -1,36 +1,66 @@
 package net.typho.crucible.wrapper
 
+import net.typho.crucible.wrapper.log.warn
 import java.lang.reflect.InvocationTargetException
+import java.nio.file.Path
+import java.util.Properties
+import kotlin.collections.component1
+import kotlin.collections.component2
 import kotlin.io.path.Path
+import kotlin.io.path.exists
+import kotlin.io.path.inputStream
+import kotlin.io.path.name
 
 object CrucibleWrapper {
-    const val KOTLIN_VERSION = "2.4.21"
+    fun loadConfig(path: Path, overwrite: Boolean = true) {
+        if (path.exists()) {
+            val properties = Properties()
+            path.inputStream().use { properties.load(it) }
+            val target = System.getProperties()
 
+            properties.forEach { (key, value) ->
+                if (overwrite) {
+                    target.put(key, value)?.let { old ->
+                        warn("Property $key was already set to $old but ${path.name} set it to $value")
+                    }
+                } else {
+                    target.putIfAbsent(key, value)
+                }
+            }
+        }
+    }
+
+    @JvmField
+    val mavenLocal = Path("${System.getProperty("user.home")}/.m2/repository").toUri().toString()
     @JvmField
     val projectRoot = System.getProperty("crucible.project_root")?.let { Path(it) } ?: Path(System.getProperty("user.dir"))
     @JvmField
-    val projectCacheFolder = projectRoot.resolve(".crucible")
+    val projectPropertiesFile = projectRoot.resolve("crucible.properties")
+
+    init {
+        loadConfig(projectPropertiesFile, false)
+    }
+
+    @JvmField
+    val mavenCacheFolder = System.getProperty("crucible.maven_cache")?.let { Path(it) } ?: Path(System.getProperty("user.home"), ".crucible", "caches", "maven")
+    @JvmField
+    var debug = System.getProperty("crucible.debug") == "true" || System.getProperty("intellij.debug.agent") == "true"
+    @JvmField
+    val crucibleVersion = System.getProperty("crucible.version") ?: throw IllegalStateException("Must set property 'crucible.version' (via system properties or by setting it in $projectPropertiesFile")
 
     @JvmStatic
     fun main(args: Array<String>) {
         val loader = CrucibleClassLoader
         Thread.currentThread().contextClassLoader = loader
 
-        CrucibleClassLoader.addLibraries(
+        CrucibleClassLoader.load(
             listOf(
+                mavenLocal,
                 "https://repo1.maven.org/maven2",
                 "https://typho.net/maven"
             ),
             listOf(
-                "org.jetbrains.kotlin:kotlin-stdlib:${KOTLIN_VERSION}",
-                "org.jetbrains.kotlin:kotlin-compiler-embeddable:${KOTLIN_VERSION}",
-                "org.jetbrains.kotlin:kotlin-scripting-jvm:${KOTLIN_VERSION}",
-                "org.jetbrains.kotlin:kotlin-scripting-jvm-host:${KOTLIN_VERSION}",
-                "org.jetbrains.kotlin:kotlin-reflect:${KOTLIN_VERSION}",
-                "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0",
-                "net.typho:crucible.ide_data:1.2.0",
-                "net.typho:data_util:1.3.5",
-                "net.typho:misc_util:1.0.1"
+                "net.typho:crucible:$crucibleVersion"
             )
         )
 

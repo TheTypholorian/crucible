@@ -6,7 +6,15 @@ import net.typho.crucible.deps.Repositories
 import net.typho.crucible.plugins.Plugins
 import net.typho.crucible.task.Task
 import net.typho.crucible.wrapper.CrucibleClassLoader
+import net.typho.crucible.wrapper.DependencyName
+import net.typho.crucible.wrapper.MavenCache
 import net.typho.crucible.wrapper.log.error
+import net.typho.crucible.wrapper.log.info
+import org.eclipse.aether.resolution.ArtifactRequest
+import org.eclipse.aether.resolution.ArtifactResolutionException
+import org.eclipse.aether.transfer.ArtifactNotFoundException
+import java.io.File
+import kotlin.io.path.toPath
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.jvm.*
 
@@ -47,8 +55,8 @@ abstract class AbstractProjectConfig {
     }
 
     companion object {
-        @JvmField
-        val compilationConfig = ScriptCompilationConfiguration {
+        @JvmStatic
+        fun createCompilationConfig(includeSources: Boolean = false) = ScriptCompilationConfiguration {
             displayName("Crucible Project Config")
             fileExtension("kts")
             filePathPattern("(.*/)?([^/]*\\.)?crucible\\.kts")
@@ -57,12 +65,27 @@ abstract class AbstractProjectConfig {
 
             jvm {
                 jvmTarget("21")
-                //dependenciesFromCurrentContext(wholeClasspath = true)
-                dependenciesFromClassloader(classLoader = CrucibleClassLoader, wholeClasspath = true, unpackJarCollections = true)
+                dependencies.append(JvmDependency(CrucibleClassLoader.urLs.map { it.toURI().toPath().toFile() }))
             }
 
             ide {
                 acceptedLocations(ScriptAcceptedLocation.Project)
+
+                if (includeSources) {
+                    dependenciesSources.append(JvmDependency(CrucibleClassLoader.artifacts.flatMap { (repository, artifacts) ->
+                        artifacts.mapNotNull { artifact ->
+                            try {
+                                MavenCache.system.resolveArtifact(MavenCache.session, ArtifactRequest(DependencyName(artifact).toArtifact(classifier = "sources"), listOf(repository), null)).artifact.path.toFile()
+                            } catch (e: ArtifactResolutionException) {
+                                if (e.result.exceptions.all { it is ArtifactNotFoundException }) {
+                                    null
+                                } else {
+                                    throw e
+                                }
+                            }
+                        }
+                    }))
+                }
             }
 
             refineConfiguration {
@@ -73,12 +96,14 @@ abstract class AbstractProjectConfig {
         @JvmStatic
         fun processPlugins(context: ScriptConfigurationRefinementContext): ResultWithDiagnostics<ScriptCompilationConfiguration> {
             try {
-                val plugins = context.collectedData
+                val plugins = mutableListOf<File>()
+
+                context.collectedData
                     ?.get(ScriptCollectedData.collectedAnnotations)
-                    ?.map { it.annotation }
-                    ?.filterIsInstance<Plugins>()
-                    ?.flatMap { CrucibleClassLoader.addLibraries(it.repositories.asList(), it.plugins.asList()) }
-                    ?.map { it.toFile() }
+                    ?.mapNotNull { anno -> (anno.annotation as? Plugins)?.let { it to anno.location } }
+                    ?.forEach { (anno, location) ->
+                        CrucibleClassLoader.load(anno.repositories.asList(), anno.plugins.asList()).mapTo(plugins) { it.toFile() }
+                    }
 
                 return context.compilationConfiguration
                     .with { updateClasspath(plugins) }

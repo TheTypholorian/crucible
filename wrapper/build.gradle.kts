@@ -8,6 +8,7 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
+    maven("https://typho.net/maven")
 }
 
 dependencies {
@@ -18,6 +19,7 @@ dependencies {
     implementation("org.apache.maven.resolver:maven-resolver-connector-basic:2.0.21")
     implementation("org.apache.maven.resolver:maven-resolver-transport-file:2.0.21")
     implementation("org.apache.maven.resolver:maven-resolver-supplier-mvn3:2.0.21")
+    implementation("net.typho:misc_util:1.0.2")
 }
 
 kotlin {
@@ -25,11 +27,10 @@ kotlin {
 }
 
 tasks.shadowJar {
+    dependsOn(project(":").tasks.named("publishToMavenLocal"))
+
     archiveClassifier = ""
     configurations = listOf(project.configurations.getByName("runtimeClasspath"))
-    from(project(":").tasks.named("jar")) {
-        rename { "crucible.jar" }
-    }
 
     manifest {
         attributes(

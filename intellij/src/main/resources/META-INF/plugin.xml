@@ -41,7 +41,7 @@
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <supportsKotlinPluginMode supportsK2="true" />
-        <scriptDefinitionsSource implementation="net.typho.crucible.intellij.script.CrucibleScriptDefinitionsSource" />
+        <scriptDefinitionsProvider implementation="net.typho.crucible.intellij.script.CrucibleScriptDefinitionsProvider" />
     </extensions>
 
 </idea-plugin>

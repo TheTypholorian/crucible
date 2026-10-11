@@ -1,6 +1,8 @@
 @file:JvmName("Log")
 package net.typho.crucible.wrapper.log
 
+import com.sun.tools.javac.code.TypeAnnotationPosition.field
+import net.typho.crucible.wrapper.CrucibleWrapper
 import org.slf4j.ILoggerFactory
 import org.slf4j.Logger
 import org.slf4j.Marker
@@ -15,9 +17,6 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import kotlin.math.floor
 
-@JvmField
-var debugEnabled = false
-
 fun Throwable.fullToString(): String {
     val out = ByteArrayOutputStream()
     val writer = PrintStream(out, false)
@@ -26,19 +25,11 @@ fun Throwable.fullToString(): String {
     return String(out.toByteArray())
 }
 
-interface StatusUpdater {
-    var progress: Float
-
-    fun finish()
-}
-
 fun info(msg: String) {
     println(msg)
 }
 
 fun info(msg: Any?) = info(msg.toString())
-
-fun info(msg: Any?, t: Throwable) = info(msg.toString() + "\n" + t.fullToString())
 
 fun warn(msg: String) {
     info("\u001b[93m$msg\u001b[0m")
@@ -46,17 +37,13 @@ fun warn(msg: String) {
 
 fun warn(msg: Any?) = warn(msg.toString())
 
-fun warn(msg: Any?, t: Throwable) = warn(msg.toString() + "\n" + t.fullToString())
-
 fun debug(msg: String) {
-    if (debugEnabled) {
+    if (CrucibleWrapper.debug) {
         info(msg)
     }
 }
 
 fun debug(msg: Any?) = debug(msg.toString())
-
-fun debug(msg: Any?, t: Throwable) = debug(msg.toString() + "\n" + t.fullToString())
 
 fun error(msg: String) {
     System.err.println(msg)
@@ -64,46 +51,9 @@ fun error(msg: String) {
 
 fun error(msg: Any?) = error(msg.toString())
 
+fun error(t: Throwable) = error(t.fullToString())
+
 fun error(msg: Any?, t: Throwable) = error(msg.toString() + "\n" + t.fullToString())
-
-fun status(
-    unit: String,
-    max: Float,
-    scale: Float = 1f,
-    width: Int = 20
-): StatusUpdater {
-    return object : StatusUpdater {
-        var ended = false
-
-        override var progress: Float = 0f
-            set(value) {
-                if (ended) {
-                    throw IllegalStateException("Status updater already ended")
-                }
-
-                ended = value >= max
-                field = value.coerceAtMost(max).coerceAtLeast(0f)
-                val amount = floor(field / max * width).toInt()
-                print("\r[" + "#".repeat(amount) + "_".repeat(width - amount) + "] - " + "%.1f/%.1f $unit".format(field * scale, max * scale))
-
-                if (ended) {
-                    println()
-                }
-
-                System.out.flush()
-            }
-
-        init {
-            progress = 0f
-        }
-
-        override fun finish() {
-            progress = max
-        }
-    }
-}
-
-fun statusPercent(scale: Float = 1f, width: Int = 20): StatusUpdater = status("%", 100f, scale, width)
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun error0(msg: String) = error(msg)
@@ -160,13 +110,13 @@ class SLF4JServiceProviderImpl : SLF4JServiceProvider, ILoggerFactory {
             }
         }
 
-        override fun isTraceEnabled() = debugEnabled
+        override fun isTraceEnabled() = CrucibleWrapper.debug
 
-        override fun isTraceEnabled(marker: Marker) = debugEnabled
+        override fun isTraceEnabled(marker: Marker) = CrucibleWrapper.debug
 
-        override fun isDebugEnabled() = debugEnabled
+        override fun isDebugEnabled() = CrucibleWrapper.debug
 
-        override fun isDebugEnabled(marker: Marker) = debugEnabled
+        override fun isDebugEnabled(marker: Marker) = CrucibleWrapper.debug
 
         override fun isInfoEnabled() = true
 
