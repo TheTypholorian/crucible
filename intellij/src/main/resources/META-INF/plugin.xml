@@ -28,6 +28,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <externalSystemManager implementation="net.typho.crucible.intellij.CrucibleSystemManager" />
         <externalSystemUnlinkedProjectAware implementation="net.typho.crucible.intellij.CrucibleUnlinkedProjectAware" />
+        <externalIconProvider key="CRUCIBLE" implementationClass="net.typho.crucible.intellij.CrucibleIconProvider" />
 
         <toolWindow id="Crucible" anchor="right" icon="net.typho.crucible.intellij.CrucibleIcons.ICON" factoryClass="net.typho.crucible.intellij.task.CrucibleToolWindowFactory" />
 
