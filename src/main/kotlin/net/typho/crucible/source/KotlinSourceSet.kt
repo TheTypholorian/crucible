@@ -3,6 +3,7 @@ package net.typho.crucible.source
 import net.typho.crucible.Crucible
 import net.typho.crucible.deps.classpathString
 import net.typho.crucible.error.CompilationException
+import net.typho.crucible.ide.data.DependencyPathType
 import net.typho.crucible.ide.data.SourceSetType
 import net.typho.crucible.wrapper.log.debug
 import net.typho.crucible.wrapper.log.warn
@@ -36,7 +37,7 @@ open class KotlinSourceSet : SourceSet() {
                 .toTypedArray()
             destination = output().absolutePathString()
             jvmTarget = Crucible.javaVersion()
-            classpath = (Crucible.dependencies.paths + previous.map { it.output() }).classpathString()
+            classpath = (Crucible.dependencies.getPaths(DependencyPathType.BINARY) + previous.map { it.output() }).classpathString()
             noStdlib = true
         }
         val errors = mutableListOf<String>()

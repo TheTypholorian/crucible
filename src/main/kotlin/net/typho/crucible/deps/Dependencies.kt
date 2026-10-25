@@ -12,16 +12,10 @@ import kotlin.io.path.Path
 
 class Dependencies(
     private val repositories: Repositories
-) : ArrayList<Lazy<IDEDependency>>() {
-    val paths: List<Path>
-        get() = this().flatMap { it.paths.filter { it.type == DependencyPathType.BINARY }.map { Path(it.path) } }
+) : ArrayList<IDEDependency>() {
+    fun getPaths(type: DependencyPathType) = flatMap { it.paths.filter { it.type == type }.map { Path(it.path) } }
 
-    @JvmName("get")
-    operator fun invoke() = map { it() }
-
-    fun add(dependency: () -> IDEDependency) = add(Lazy(dependency))
-
-    fun add(name: DependencyName) = add { repositories.find(name) ?: throw DependencyNotFoundException("Cannot find dependency '${name.coordinates}', searched in repositories:\n\t${Crucible.repositories.joinToString(separator = "\n\t")}") }
+    fun add(name: DependencyName) = add(repositories.find(name) ?: throw DependencyNotFoundException("Cannot find dependency '${name.coordinates}', searched in repositories:\n\t${Crucible.repositories.joinToString(separator = "\n\t")}"))
 
     fun add(
         group: String,

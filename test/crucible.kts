@@ -10,7 +10,7 @@ dependencies {
 }
 
 registerTask<JavaExecTask>("run") {
-    classpath.addAll { dependencies.paths }
+    classpath.addAll { dependencies.getPaths(DependencyPathType.BINARY) }
     classpath.addAll(CompileTask.Main)
     mainClass.set("Test")
 }

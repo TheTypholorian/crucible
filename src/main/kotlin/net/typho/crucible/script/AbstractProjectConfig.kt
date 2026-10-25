@@ -4,12 +4,12 @@ import net.typho.crucible.Crucible
 import net.typho.crucible.deps.Dependencies
 import net.typho.crucible.deps.Repositories
 import net.typho.crucible.plugins.Plugins
+import net.typho.crucible.property.ListProperty
 import net.typho.crucible.task.Task
 import net.typho.crucible.wrapper.CrucibleClassLoader
 import net.typho.crucible.wrapper.DependencyName
 import net.typho.crucible.wrapper.MavenCache
 import net.typho.crucible.wrapper.log.error
-import net.typho.crucible.wrapper.log.info
 import org.eclipse.aether.resolution.ArtifactRequest
 import org.eclipse.aether.resolution.ArtifactResolutionException
 import org.eclipse.aether.transfer.ArtifactNotFoundException
@@ -19,18 +19,9 @@ import kotlin.script.experimental.api.*
 import kotlin.script.experimental.jvm.*
 
 abstract class AbstractProjectConfig {
-    val repositories by Crucible::repositories
-    val dependencies by Crucible::dependencies
+    fun repositories(action: Repositories.() -> Unit) = action(Crucible.repositories)
 
-    var group by Crucible.group
-    var name by Crucible.name
-    var version by Crucible.version
-
-    var javaVersion by Crucible.javaVersion
-
-    fun repositories(action: Repositories.() -> Unit) = action(repositories)
-
-    fun dependencies(action: Dependencies.() -> Unit) = action(dependencies)
+    fun dependencies(action: Dependencies.() -> Unit) = action(Crucible.dependencies)
 
     fun getTask(name: String) = Task.get(name)
 
@@ -55,13 +46,25 @@ abstract class AbstractProjectConfig {
     }
 
     companion object {
+        @JvmField
+        val defaultImports = ListProperty(
+            "net.typho.crucible.*",
+            "net.typho.crucible.Crucible.*",
+            "net.typho.crucible.deps.*",
+            "net.typho.crucible.plugins.*",
+            "net.typho.crucible.property.*",
+            "net.typho.crucible.source.*",
+            "net.typho.crucible.task.*",
+            "net.typho.crucible.ide.data.*"
+        ).finalizeOnRead()
+
         @JvmStatic
         fun createCompilationConfig(includeSources: Boolean = false) = ScriptCompilationConfiguration {
             displayName("Crucible Project Config")
             fileExtension("kts")
             filePathPattern("(.*/)?([^/]*\\.)?crucible\\.kts")
             baseClass(KotlinType(AbstractProjectConfig::class))
-            defaultImports.append("net.typho.crucible.*", "net.typho.crucible.deps.*", "net.typho.crucible.plugins.*", "net.typho.crucible.property.*", "net.typho.crucible.source.*", "net.typho.crucible.task.*")
+            defaultImports.append(AbstractProjectConfig.defaultImports())
 
             jvm {
                 jvmTarget("21")
@@ -100,8 +103,8 @@ abstract class AbstractProjectConfig {
 
                 context.collectedData
                     ?.get(ScriptCollectedData.collectedAnnotations)
-                    ?.mapNotNull { anno -> (anno.annotation as? Plugins)?.let { it to anno.location } }
-                    ?.forEach { (anno, location) ->
+                    ?.mapNotNull { anno -> anno.annotation as? Plugins }
+                    ?.forEach { anno ->
                         CrucibleClassLoader.load(anno.repositories.asList(), anno.plugins.asList()).mapTo(plugins) { it.toFile() }
                     }
 

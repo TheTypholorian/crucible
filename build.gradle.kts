@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    implementation("net.typho:crucible.ide_data:1.5.0")
+    implementation("net.typho:crucible.ide_data:1.5.1")
     implementation("net.typho:data_util:1.3.5")
     compileOnly("net.typho:misc_util:1.0.2")
 
