@@ -13,7 +13,7 @@ data class CrucibleIDEData(
     val scriptFiles: List<String>
 ) {
     companion object {
-        const val VERSION = "1.5.1"
+        const val VERSION = "1.6.0"
         private val REFLECTED_CODEC = Codec.reflect(CrucibleIDEData::class.java)
         @JvmField
         val CODEC = VersionedCodec.of(
@@ -38,8 +38,6 @@ data class CrucibleIDEData(
         @JvmField
         val sourceSets: List<SourceSet>,
         @JvmField
-        val dependencies: List<IDEDependency>,
-        @JvmField
         val tasks: List<Task>
     ) {
         companion object {
@@ -51,6 +49,8 @@ data class CrucibleIDEData(
     data class SourceSet(
         @JvmField
         val type: SourceSetType,
+        @JvmField
+        val dependencies: List<IDEDependency>,
         @JvmField
         val generated: Boolean,
         @JvmField

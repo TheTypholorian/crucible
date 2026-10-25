@@ -4,6 +4,7 @@ import net.typho.crucible.Crucible
 import net.typho.crucible.ide.data.CrucibleIDEData
 import net.typho.crucible.script.AbstractProjectConfig
 import net.typho.crucible.source.SourceSet
+import net.typho.crucible.task.InternalTask
 import net.typho.crucible.task.Task
 import net.typho.data_util.impl.JsonFormat
 import java.io.ObjectOutputStream
@@ -12,7 +13,7 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.outputStream
 import kotlin.io.path.writeText
 
-object RefreshIDETask : Task<Unit>() {
+object RefreshIDETask : Task<Unit>(), InternalTask {
     override val group: String
         get() = "internal"
     override val description: String
@@ -28,13 +29,13 @@ object RefreshIDETask : Task<Unit>() {
                     set.event.inputs().map { path ->
                         CrucibleIDEData.SourceSet(
                             set.event.type,
+                            Crucible.dependencies, // TODO
                             false, // TODO
                             path.absolutePathString()
                         )
                     }
                 },
-                Crucible.dependencies,
-                Task.all.entries.filter { it.value.group != "internal" }.map { (name, task) -> CrucibleIDEData.Task(name, task.group, task.description) }
+                Task.all.entries.filter { (name, task) -> task !is InternalTask }.map { (name, task) -> CrucibleIDEData.Task(name, task.group, task.description) }
             )),
             Crucible.loadedScripts.toList()
         )

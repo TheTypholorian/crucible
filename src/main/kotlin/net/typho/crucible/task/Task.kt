@@ -40,8 +40,11 @@ abstract class Task<R> : () -> R {
         get() = ""
 
     override operator fun invoke(): R {
+        val start = System.currentTimeMillis()
         info("> Executing task '$this'")
-        return run()
+        val result = run()
+        info("> Finished task '$this' in ${System.currentTimeMillis() - start} ms")
+        return result
     }
 
     protected abstract fun run(): R

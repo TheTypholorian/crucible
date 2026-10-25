@@ -60,7 +60,7 @@ class CrucibleSystemTaskManager : ExternalSystemTaskManager<CrucibleSystemManage
         stdErr.join()
 
         if (exitCode != 0) {
-            throw ExternalSystemException("Task failed with exit code $exitCode")
+            listener.onFailure(projectPath, id, ExternalSystemException("Task failed with exit code $exitCode"))
         }
     }
 

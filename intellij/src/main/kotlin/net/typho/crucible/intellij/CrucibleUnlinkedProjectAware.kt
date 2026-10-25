@@ -59,6 +59,8 @@ class CrucibleUnlinkedProjectAware : ExternalSystemUnlinkedProjectAware {
         ExternalSystemUtil.refreshProject(
             externalProjectPath,
             ImportSpecBuilder(project, SYSTEM_ID)
+                .activateBuildToolWindowOnStart()
+                .navigateToError()
         )
     }
 }

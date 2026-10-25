@@ -5,7 +5,7 @@ repositories {
 
 dependencies {
     kotlin("stdlib")
-    add("net.typho:data_util:1.3.5")
+    add("net.typho:data_util:1.4.2")
     add("net.typho:asm_util:1.3.6")
 }
 
