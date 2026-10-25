@@ -2,7 +2,7 @@ package net.typho.crucible.ide.data
 
 import net.typho.data_util.codec.Codec
 
-data class Dependency(
+data class IDEDependency(
     @JvmField
     val name: String,
     @JvmField
@@ -10,7 +10,7 @@ data class Dependency(
 ) {
     companion object {
         @JvmField
-        val CODEC = Codec.reflect(Dependency::class.java)
+        val CODEC = Codec.reflect(IDEDependency::class.java)
     }
 
     data class Path(

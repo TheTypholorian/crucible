@@ -1,6 +1,6 @@
 package net.typho.crucible.deps
 
-import net.typho.crucible.ide.data.Dependency
+import net.typho.crucible.ide.data.IDEDependency
 import net.typho.crucible.ide.data.DependencyPathType
 import net.typho.crucible.wrapper.CrucibleWrapper
 import net.typho.crucible.wrapper.DependencyName
@@ -19,12 +19,12 @@ interface Repository {
         const val TYPHO_NET = "https://typho.net/maven"
 
         @JvmStatic
-        fun Iterable<Repository>.find(name: DependencyName): Dependency? {
+        fun Iterable<Repository>.find(name: DependencyName): IDEDependency? {
             return firstNotNullOfOrNull { it.find(name) }
         }
     }
 
-    fun find(name: DependencyName): Dependency?
+    fun find(name: DependencyName): IDEDependency?
 
     abstract override fun toString(): String
 
@@ -46,14 +46,14 @@ interface Repository {
             }
         }
 
-        override fun find(name: DependencyName): Dependency? {
+        override fun find(name: DependencyName): IDEDependency? {
             val main = find(name.toArtifact()) ?: return null
             val sources = find(name.toArtifact(classifier = "sources"))
-            return Dependency(name.coordinates, buildList {
-                add(Dependency.Path(DependencyPathType.BINARY, main.path.absolutePathString()))
+            return IDEDependency(name.coordinates, buildList {
+                add(IDEDependency.Path(DependencyPathType.BINARY, main.path.absolutePathString()))
 
                 if (sources != null) {
-                    add(Dependency.Path(DependencyPathType.SOURCE, sources.path.absolutePathString()))
+                    add(IDEDependency.Path(DependencyPathType.SOURCE, sources.path.absolutePathString()))
                 }
             })
         }

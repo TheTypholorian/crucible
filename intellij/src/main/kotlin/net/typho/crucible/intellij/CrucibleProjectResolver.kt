@@ -35,6 +35,7 @@ import net.typho.crucible.ide.data.SourceSetType
 import net.typho.data_util.impl.JsonFormat
 import org.jetbrains.kotlin.idea.core.script.k2.ReloadScriptConfigurationService
 import org.jetbrains.kotlin.psi.KtFile
+import java.util.concurrent.CompletableFuture
 import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.readText
@@ -48,6 +49,7 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
         listener: ExternalSystemTaskNotificationListener
     ): DataNode<ProjectData> {
         val start = System.currentTimeMillis()
+        val result = CompletableFuture<Boolean>()
 
         ExternalSystemUtil.runTask(
             TaskExecutionSpec.create()
@@ -60,19 +62,17 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
                 })
                 .withExecutorId(DefaultRunExecutor.EXECUTOR_ID)
                 .withProgressExecutionMode(ProgressExecutionMode.NO_PROGRESS_SYNC)
-                .withCallback(object : TaskCallback {
-                    override fun onSuccess() {
-                        listener.onTaskOutput(id, "\nBuild finished in ${System.currentTimeMillis() - start} ms", ProcessOutputType.STDOUT)
-                    }
-
-                    override fun onFailure() {
-                        throw ExternalSystemException("Task failed")
-                    }
-                })
+                .withCallback(result)
                 .withListener(ForwardingTaskNotificationListener(id, listener))
                 .navigateToError()
                 .build()
         )
+
+        if (result.join()) {
+            listener.onTaskOutput(id, "\n\nRESOLVE FINISHED in ${System.currentTimeMillis() - start} ms", ProcessOutputType.STDOUT)
+        } else {
+            throw ExternalSystemException("Task failed")
+        }
 
         val projectPath = Path(projectPath).absolute()
         val info = JsonFormat().read(CrucibleIDEData.CODEC, projectPath.resolve(".crucible").resolve("ide.json").readText())

@@ -2,6 +2,7 @@ package net.typho.crucible.task
 
 import net.typho.crucible.deps.PrintClasspathTask
 import net.typho.crucible.ide.RefreshIDETask
+import net.typho.crucible.property.Property
 import net.typho.crucible.source.CompileTask
 import net.typho.crucible.source.JarTask
 import net.typho.crucible.wrapper.log.debug
@@ -44,6 +45,20 @@ abstract class Task<R> : () -> R {
     }
 
     protected abstract fun run(): R
+
+    protected open fun getPropertyRef(name: String): Property<*> {
+        val field = javaClass.getField(name)
+
+        if (!Property::class.java.isAssignableFrom(field.type)) {
+            throw IllegalArgumentException("Field $name is not a Property type")
+        }
+
+        return field.get(this) as Property<*>
+    }
+
+    open fun getProperty(name: String) = getPropertyRef(name).get()
+
+    open fun setProperty(name: String, value: Any?) = getPropertyRef(name).setCast(value)
 
     override fun toString(): String {
         return all.entries.firstOrNull { (key, value) -> value === this }?.key ?: super.toString()

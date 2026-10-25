@@ -23,7 +23,7 @@ data class CrucibleIDEData(
         @JvmField
         val sourceSets: List<SourceSet>,
         @JvmField
-        val dependencies: List<Dependency>,
+        val dependencies: List<IDEDependency>,
         @JvmField
         val tasks: List<Task>
     ) {

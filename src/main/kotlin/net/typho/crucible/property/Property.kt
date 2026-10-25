@@ -69,6 +69,11 @@ open class Property<V> : Consumer<V>, Supplier<V>, ReadWriteProperty<Any?, V> {
 
     open operator fun invoke() = get()
 
+    @Suppress("UNCHECKED_CAST")
+    fun setCast(value: Any?) {
+        set(value as V)
+    }
+
     open fun set(value: V) {
         value0 = SimpleValue(value)
     }
