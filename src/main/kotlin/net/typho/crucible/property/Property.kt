@@ -6,7 +6,12 @@ import java.util.function.UnaryOperator
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-open class Property<V> : Consumer<V>, Supplier<V>, ReadWriteProperty<Any?, V> {
+open class Property<V>(
+    @JvmField
+    val name: String,
+    @JvmField
+    val container: PropertyContainer
+) : Consumer<V>, Supplier<V>, ReadWriteProperty<Any?, V> {
     protected enum class Finalization {
         NONE,
         ENABLED,
@@ -41,14 +46,12 @@ open class Property<V> : Consumer<V>, Supplier<V>, ReadWriteProperty<Any?, V> {
             field = value
         }
 
-    constructor()
+    init {
+        if (container.properties.containsKey(name)) {
+            throw IllegalStateException("Property '$name' already exists in container $container")
+        }
 
-    constructor(value: V) : this(SimpleValue(value))
-
-    constructor(supplier: Supplier<V>) : this(LazyValue(supplier))
-
-    protected constructor(value: Value<V>) {
-        value0 = value
+        container.properties += name to this
     }
 
     override fun getValue(thisRef: Any?, property: KProperty<*>) = get()
@@ -93,8 +96,6 @@ open class Property<V> : Consumer<V>, Supplier<V>, ReadWriteProperty<Any?, V> {
     open fun transmute(op: UnaryOperator<V>) {
         value0 = getHolderOrThrow().map(op)
     }
-
-    open fun map(func: UnaryOperator<V>) = Property<V> { func.apply(get()) }
 
     open fun finalizeOnRead(): Property<V> {
         if (finalization == Finalization.NONE) {

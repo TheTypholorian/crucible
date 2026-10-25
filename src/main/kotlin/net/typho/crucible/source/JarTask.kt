@@ -20,10 +20,8 @@ open class JarTask : Task<Unit>() {
     override val group: String
         get() = "build"
 
-    @JvmField
-    val inputs = ListProperty<Path>().finalizeOnRead()
-    @JvmField
-    val output = Property<Path>().finalizeOnRead()
+    val inputs by listProperty<Path>().finalizeOnRead()
+    val output by property<Path>().finalizeOnRead()
 
     override fun run() {
         val output = output()

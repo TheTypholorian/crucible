@@ -3,20 +3,13 @@ package net.typho.crucible.property
 import java.util.function.Supplier
 import java.util.function.UnaryOperator
 
-open class ListProperty<V> : Property<List<V>>, MutableCollection<V> {
-    constructor() : this(listOf())
-
-    constructor(vararg values: V) : this(listOf(*values))
-
-    constructor(value: List<V>) : super(value)
-
-    constructor(supplier: Supplier<List<V>>) : super(supplier)
-
+open class ListProperty<V>(
+    name: String,
+    container: PropertyContainer
+) : Property<List<V>>(name, container), MutableCollection<V> {
     override fun transmute(op: UnaryOperator<List<V>>) {
         value0 = value0?.map(op) ?: LazyValue { op.apply(listOf()) }
     }
-
-    override fun map(func: UnaryOperator<List<V>>) = ListProperty { func.apply(get()) }
 
     override fun finalizeOnRead() = super.finalizeOnRead() as ListProperty<V>
 

@@ -5,6 +5,7 @@ import net.typho.crucible.deps.Dependencies
 import net.typho.crucible.deps.Repositories
 import net.typho.crucible.plugins.Plugins
 import net.typho.crucible.property.ListProperty
+import net.typho.crucible.property.PropertyContainer
 import net.typho.crucible.task.Task
 import net.typho.crucible.wrapper.CrucibleClassLoader
 import net.typho.crucible.wrapper.DependencyName
@@ -45,9 +46,9 @@ abstract class AbstractProjectConfig {
         return registerTask(name, T::class.java, config)
     }
 
-    companion object {
+    companion object : PropertyContainer() {
         @JvmField
-        val defaultImports = ListProperty(
+        val defaultImports = listProperty(
             "net.typho.crucible.*",
             "net.typho.crucible.Crucible.*",
             "net.typho.crucible.deps.*",

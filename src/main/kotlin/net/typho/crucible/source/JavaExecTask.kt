@@ -12,14 +12,10 @@ open class JavaExecTask : Task<Unit>() {
     override val group: String
         get() = "run"
 
-    @JvmField
-    val classpath = ListProperty<Path>().finalizeOnRead()
-    @JvmField
-    val mainClass = Property<String>().finalizeOnRead()
-    @JvmField
-    val javaArgs = ListProperty<Pair<String, String>>().finalizeOnRead()
-    @JvmField
-    val programArgs = ListProperty<String>().finalizeOnRead()
+    val classpath by listProperty<Path>().finalizeOnRead()
+    val mainClass by property<String>().finalizeOnRead()
+    val javaArgs by listProperty<Pair<String, String>>().finalizeOnRead()
+    val programArgs by listProperty<String>().finalizeOnRead()
 
     override fun run() {
         val process = ProcessBuilder(buildList {
