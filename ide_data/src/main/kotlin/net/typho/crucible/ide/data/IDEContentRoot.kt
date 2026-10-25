@@ -2,11 +2,9 @@ package net.typho.crucible.ide.data
 
 import net.typho.data_util.codec.Codec
 
-data class IDESourceSet(
+data class IDEContentRoot(
     @JvmField
     val type: SourceSetType,
-    @JvmField
-    val dependencies: List<IDEDependency>,
     @JvmField
     val generated: Boolean,
     @JvmField
@@ -14,6 +12,6 @@ data class IDESourceSet(
 ) {
     companion object {
         @JvmField
-        val CODEC = Codec.reflect(IDESourceSet::class.java)
+        val CODEC = Codec.reflect(IDEContentRoot::class.java)
     }
 }

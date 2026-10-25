@@ -8,7 +8,9 @@ data class IDEModule(
     @JvmField
     val path: String,
     @JvmField
-    val sourceSets: List<IDESourceSet>,
+    val roots: List<IDEContentRoot>,
+    @JvmField
+    val dependencies: List<IDEDependency>,
     @JvmField
     val tasks: List<IDETask>
 ) {

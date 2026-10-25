@@ -13,7 +13,7 @@ data class IDEProject(
     val scriptFiles: List<String>
 ) {
     companion object {
-        const val VERSION = "1.6.1"
+        const val VERSION = "1.7.0"
         private val REFLECTED_CODEC = Codec.reflect(IDEProject::class.java)
         @JvmField
         val CODEC = VersionedCodec.of(
@@ -29,5 +29,4 @@ data class IDEProject(
             fallback = VERSION
         )
     }
-
 }
