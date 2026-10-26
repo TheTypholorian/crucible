@@ -28,7 +28,7 @@ repositories {
 dependencies {
     implementation("net.typho:crucible.ide_data:1.8.0")
     implementation("net.typho:data_util:1.4.2")
-    compileOnly("net.typho:misc_util:1.1.0")
+    implementation("net.typho:misc_util:1.1.0")
 
     implementation(kotlin("compiler-embeddable"))
     implementation(kotlin("scripting-jvm"))

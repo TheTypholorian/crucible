@@ -79,7 +79,7 @@ object CrucibleClassLoader : URLClassLoader(
             findLoadedClass(name)?.let { return it }
 
             val clazz = when {
-                name.startsWith("net.typho.crucible.wrapper.") || name.startsWith("net.typho.misc_util.") || name.startsWith("org.eclipse.aether.") -> parent.loadClass(name)
+                name.startsWith("net.typho.crucible.wrapper.") || name.startsWith("org.eclipse.aether.") -> parent.loadClass(name)
                 name.startsWith("java.") -> getPlatformClassLoader().loadClass(name)
                 else -> try {
                     findClass(name)

@@ -114,11 +114,10 @@ object Crucible : PropertyContainer() {
     @JvmStatic
     fun main(args: Array<String>) {
         val startTime = System.currentTimeMillis()
-        debug("Starting crucible at $projectRoot")
 
         loadConfigScript(configScriptFile())
 
-        debug("Finished config phase in ${(System.currentTimeMillis() - startTime) / 1000f} seconds")
+        info("> Finished config phase in ${System.currentTimeMillis() - startTime} ms")
 
         for (task in args) {
             Task.getTask(task).invoke()
