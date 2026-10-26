@@ -10,9 +10,7 @@ data class IDEModule(
     @JvmField
     val roots: List<IDEContentRoot>,
     @JvmField
-    val dependencies: List<IDEDependency>,
-    @JvmField
-    val tasks: List<IDETask>
+    val dependencies: List<IDEDependency>
 ) {
     companion object {
         @JvmField

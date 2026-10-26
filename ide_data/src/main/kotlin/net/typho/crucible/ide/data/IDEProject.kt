@@ -10,10 +10,12 @@ data class IDEProject(
     @JvmField
     val modules: List<IDEModule>,
     @JvmField
+    val tasks: List<IDETask>,
+    @JvmField
     val scriptFiles: List<String>
 ) {
     companion object {
-        const val VERSION = "1.7.0"
+        const val VERSION = "1.8.0"
         private val REFLECTED_CODEC = Codec.reflect(IDEProject::class.java)
         @JvmField
         val CODEC = VersionedCodec.of(
