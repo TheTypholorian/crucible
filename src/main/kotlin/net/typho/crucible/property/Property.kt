@@ -1,5 +1,6 @@
 package net.typho.crucible.property
 
+import net.typho.crucible.Named
 import java.util.function.Consumer
 import java.util.function.Supplier
 import java.util.function.UnaryOperator
@@ -7,11 +8,10 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 open class Property<V>(
-    @JvmField
-    val name: String,
+    override val id: String,
     @JvmField
     val container: PropertyContainer
-) : Consumer<V>, Supplier<V>, ReadWriteProperty<Any?, V> {
+) : Named, Consumer<V>, Supplier<V>, ReadWriteProperty<Any?, V> {
     protected enum class Finalization {
         NONE,
         ENABLED,
@@ -47,11 +47,11 @@ open class Property<V>(
         }
 
     init {
-        if (container.properties.containsKey(name)) {
-            throw IllegalStateException("Property '$name' already exists in container $container")
+        if (container.properties.containsKey(id)) {
+            throw IllegalStateException("Property '$id' already exists in container $container")
         }
 
-        container.properties += name to this
+        container.properties += id to this
     }
 
     override fun getValue(thisRef: Any?, property: KProperty<*>) = get()

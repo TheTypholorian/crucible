@@ -1,7 +1,5 @@
 package net.typho.crucible
 
-import net.typho.crucible.Crucible.buildFolder
-import net.typho.crucible.Crucible.configScriptFile
 import net.typho.crucible.deps.Dependencies
 import net.typho.crucible.deps.Repositories
 import net.typho.crucible.error.CompilationException
@@ -12,6 +10,7 @@ import net.typho.crucible.task.Task
 import net.typho.crucible.wrapper.CrucibleClassLoader
 import net.typho.crucible.wrapper.CrucibleWrapper
 import net.typho.crucible.wrapper.log.*
+import org.jetbrains.kotlin.ir.types.IdSignatureValues.result
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
@@ -57,19 +56,21 @@ object Crucible : PropertyContainer() {
     val ideInfoFile = projectCacheFolder.resolve("ide.json")
     @JvmField
     val scriptInfoFile = projectCacheFolder.resolve("scripts.bin")
-    val sourceInputFolder by lazyProperty { projectRoot.resolve("src") }
+    val sourceInputFolder by lazyProperty { projectRoot.resolve("src") }.finalizeOnRead()
 
     val buildFolder by lazyProperty { System.getProperty("crucible.build_folder")?.let { Path(it).absolute() } ?: projectRoot.resolve("build") }.finalizeOnRead()
-    val jarOutputFolder by lazyProperty { buildFolder().resolve("jars") }.finalizeOnRead()
-    val sourceOutputFolder by lazyProperty { buildFolder().resolve("src") }.finalizeOnRead()
     val configScriptFile by lazyProperty { System.getProperty("crucible.config_script")?.let { Path(it).absolute() } ?: projectRoot.resolve("crucible.kts") }.finalizeOnRead()
 
     @JvmField
     val repositories = Repositories()
+
     @JvmField
-    val dependencies = Dependencies(repositories)
+    val modules = NamedContainer { Module(it) }
 
     internal val loadedScripts = mutableSetOf<String>()
+
+    @JvmStatic
+    fun repositories(action: Repositories.() -> Unit) = action(repositories)
 
     @JvmStatic
     fun loadConfigScript(path: Path) {
@@ -82,19 +83,23 @@ object Crucible : PropertyContainer() {
     fun loadConfigScript(code: String, path: String) {
         debug("Loading config script $path")
         loadedScripts.add(path)
-        val result = BasicJvmScriptingHost(ScriptingHostConfiguration {
-            jvm {
-                baseClassLoader.put(CrucibleClassLoader)
-            }
-        }).eval(
-            StringScriptSource(code, path),
-            AbstractProjectConfig.createCompilationConfig(),
-            ScriptEvaluationConfiguration {
+        val result = try {
+            BasicJvmScriptingHost(ScriptingHostConfiguration {
                 jvm {
                     baseClassLoader.put(CrucibleClassLoader)
                 }
-            }
-        )
+            }).eval(
+                StringScriptSource(code, path),
+                AbstractProjectConfig.createCompilationConfig(),
+                ScriptEvaluationConfiguration {
+                    jvm {
+                        baseClassLoader.put(CrucibleClassLoader)
+                    }
+                }
+            )
+        } catch (e: Exception) {
+            throw ConfigScriptException("Error executing script '$path'", e)
+        }
 
         result.reports.forEach {
             when (it.severity) {
@@ -116,7 +121,7 @@ object Crucible : PropertyContainer() {
         debug("Finished config phase in ${(System.currentTimeMillis() - startTime) / 1000f} seconds")
 
         for (task in args) {
-            Task.get(task).invoke()
+            Task.getTask(task).invoke()
         }
     }
 }

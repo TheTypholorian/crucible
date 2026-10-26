@@ -15,7 +15,6 @@ import com.intellij.openapi.externalSystem.model.project.LibraryDependencyData
 import com.intellij.openapi.externalSystem.model.project.LibraryLevel
 import com.intellij.openapi.externalSystem.model.project.LibraryPathType
 import com.intellij.openapi.externalSystem.model.project.ModuleData
-import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
@@ -118,7 +117,7 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
                         module.path
                     )
                 ).also { moduleNode ->
-                    for (set in module.sourceSets) {
+                    for (set in module.roots) {
                         moduleNode.createChild(
                             ProjectKeys.CONTENT_ROOT,
                             ContentRootData(SYSTEM_ID, set.path).also { sourceSetData ->
@@ -127,45 +126,45 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
                                     SourceSetType.RESOURCES -> if (set.generated) ExternalSystemSourceType.RESOURCE_GENERATED else ExternalSystemSourceType.RESOURCE
                                 }, set.path)
                             }
-                        ).also { sourceSetNode ->
-                            for (dep in set.dependencies) {
-                                sourceSetNode.createChild(
-                                    ProjectKeys.LIBRARY_DEPENDENCY,
-                                    LibraryDependencyData(
-                                        moduleNode.data,
-                                        LibraryData(
-                                            SYSTEM_ID,
-                                            dep.name
-                                        ).also { dependencyData ->
-                                            for (path in dep.paths) {
-                                                dependencyData.addPath(when (path.type) {
-                                                    DependencyPathType.BINARY -> LibraryPathType.BINARY
-                                                    DependencyPathType.SOURCE -> LibraryPathType.SOURCE
-                                                    DependencyPathType.DOC -> LibraryPathType.DOC
-                                                }, path.path)
-                                            }
-                                        },
-                                        LibraryLevel.MODULE
-                                    )
-                                )
-                            }
-                        }
+                        )
                     }
 
-                    for (task in module.tasks) {
+                    for (dep in module.dependencies) {
                         moduleNode.createChild(
-                            ProjectKeys.TASK,
-                            TaskData(
-                                SYSTEM_ID,
-                                task.id,
-                                projectPath.toString(),
-                                task.description
-                            ).also { taskData ->
-                                taskData.group = task.group
-                            }
+                            ProjectKeys.LIBRARY_DEPENDENCY,
+                            LibraryDependencyData(
+                                moduleNode.data,
+                                LibraryData(
+                                    SYSTEM_ID,
+                                    dep.name
+                                ).also { dependencyData ->
+                                    for (path in dep.paths) {
+                                        dependencyData.addPath(when (path.type) {
+                                            DependencyPathType.BINARY -> LibraryPathType.BINARY
+                                            DependencyPathType.SOURCE -> LibraryPathType.SOURCE
+                                            DependencyPathType.DOC -> LibraryPathType.DOC
+                                        }, path.path)
+                                    }
+                                },
+                                LibraryLevel.MODULE
+                            )
                         )
                     }
                 }
+            }
+
+            for (task in info.tasks) {
+                projectNode.createChild(
+                    ProjectKeys.TASK,
+                    TaskData(
+                        SYSTEM_ID,
+                        task.id,
+                        projectPath.toString(),
+                        task.description
+                    ).also { taskData ->
+                        taskData.group = task.group
+                    }
+                )
             }
         }
     }

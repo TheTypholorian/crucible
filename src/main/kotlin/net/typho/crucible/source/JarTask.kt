@@ -52,25 +52,4 @@ open class JarTask : Task<Unit>() {
             }
         }
     }
-
-    object Main : JarTask() {
-        override val description: String
-            get() = "Default jar task"
-
-        init {
-            inputs.addAll(CompileTask.Main)
-            output.setLazy {
-                Crucible.jarOutputFolder().resolve(buildString {
-                    append(Crucible.name())
-
-                    if (Crucible.version().isNotEmpty()) {
-                        append('-')
-                        append(Crucible.version())
-                    }
-
-                    append(".jar")
-                })
-            }
-        }
-    }
 }

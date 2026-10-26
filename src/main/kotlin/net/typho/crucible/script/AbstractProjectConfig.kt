@@ -1,12 +1,7 @@
 package net.typho.crucible.script
 
-import net.typho.crucible.Crucible
-import net.typho.crucible.deps.Dependencies
-import net.typho.crucible.deps.Repositories
 import net.typho.crucible.plugins.Plugins
-import net.typho.crucible.property.ListProperty
 import net.typho.crucible.property.PropertyContainer
-import net.typho.crucible.task.Task
 import net.typho.crucible.wrapper.CrucibleClassLoader
 import net.typho.crucible.wrapper.DependencyName
 import net.typho.crucible.wrapper.MavenCache
@@ -20,32 +15,6 @@ import kotlin.script.experimental.api.*
 import kotlin.script.experimental.jvm.*
 
 abstract class AbstractProjectConfig {
-    fun repositories(action: Repositories.() -> Unit) = action(Crucible.repositories)
-
-    fun dependencies(action: Dependencies.() -> Unit) = action(Crucible.dependencies)
-
-    fun getTask(name: String) = Task.get(name)
-
-    fun <T : Task<*>> getTask(name: String, type: Class<T>) = Task.get(name, type)
-
-    fun <T : Task<*>> registerTask(name: String, task: T): T {
-        Task.all.put(name, task)?.let { old ->
-            throw IllegalArgumentException("Task $old is already registered under the name '$name' (tried to register $task)")
-        }
-
-        return task
-    }
-
-    fun <T : Task<*>> registerTask(name: String, task: Class<T>, config: T.() -> Unit): T {
-        val task = task.getConstructor().newInstance()
-        config(task)
-        return registerTask(name, task)
-    }
-
-    inline fun <reified T : Task<*>> registerTask(name: String, noinline config: T.() -> Unit): T {
-        return registerTask(name, T::class.java, config)
-    }
-
     companion object : PropertyContainer() {
         @JvmField
         val defaultImports = listProperty(
@@ -56,6 +25,7 @@ abstract class AbstractProjectConfig {
             "net.typho.crucible.property.*",
             "net.typho.crucible.source.*",
             "net.typho.crucible.task.*",
+            "net.typho.crucible.task.Task.*",
             "net.typho.crucible.ide.data.*"
         ).finalizeOnRead()
 

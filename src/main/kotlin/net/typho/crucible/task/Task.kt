@@ -1,37 +1,63 @@
 package net.typho.crucible.task
 
-import net.typho.crucible.deps.PrintClasspathTask
 import net.typho.crucible.ide.RefreshIDETask
-import net.typho.crucible.property.Property
 import net.typho.crucible.property.PropertyContainer
-import net.typho.crucible.source.CompileTask
-import net.typho.crucible.source.JarTask
 import net.typho.crucible.wrapper.log.debug
 import net.typho.crucible.wrapper.log.info
 
 abstract class Task<R> : PropertyContainer(), () -> R {
     companion object {
         @JvmField
-        val all = mutableMapOf<String, Task<*>>(
-            "compile" to CompileTask.Main,
-            "jar" to JarTask.Main,
-            "print_classpath" to PrintClasspathTask,
+        val tasks = mutableMapOf<String, Task<*>>(
             "refresh_ide" to RefreshIDETask
         )
 
         @JvmStatic
-        fun get(name: String): Task<*> = all[name] ?: throw NullPointerException("Task '$name' does not exist")
+        fun getTask(id: String): Task<*> = tasks[id] ?: throw NullPointerException("Task '$id' does not exist")
 
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
-        fun <T : Task<*>> get(name: String, type: Class<T>): T {
-            val task = get(name)
+        fun <T : Task<*>> getTask(id: String, type: Class<T>): T {
+            val task = getTask(id)
 
             if (type.isAssignableFrom(task.javaClass)) {
                 return task as T
             } else {
-                throw ClassCastException("Task '$name' is not of type ${type.name}")
+                throw ClassCastException("Task '$id' is not of type ${type.name}")
             }
+        }
+
+        @JvmName("getTaskInlined")
+        @JvmStatic
+        inline fun <reified T : Task<*>> getTask(id: String): T {
+            return getTask(id, T::class.java)
+        }
+
+        @JvmStatic
+        fun <T : Task<*>> registerTask(id: String, task: T): T {
+            tasks.put(id, task)?.let { old ->
+                throw IllegalArgumentException("Task $old is already registered under the id '$id' (tried to register $task)")
+            }
+
+            return task
+        }
+
+        @JvmStatic
+        fun <T : Task<*>> registerTask(id: String, task: T, config: T.() -> Unit) = registerTask(id, task).apply(config)
+
+        @JvmStatic
+        fun <T : Task<*>> registerTask(id: String, task: Class<T>): T {
+            return registerTask(id, task.getConstructor().newInstance())
+        }
+
+        @JvmStatic
+        fun <T : Task<*>> registerTask(id: String, task: Class<T>, config: T.() -> Unit): T {
+            return registerTask(id, task).apply(config)
+        }
+
+        @JvmStatic
+        inline fun <reified T : Task<*>> registerTask(id: String, noinline config: T.() -> Unit): T {
+            return registerTask(id, T::class.java, config)
         }
     }
 
@@ -51,7 +77,7 @@ abstract class Task<R> : PropertyContainer(), () -> R {
     protected abstract fun run(): R
 
     override fun toString(): String {
-        return all.entries.firstOrNull { (key, value) -> value === this }?.key ?: super.toString()
+        return tasks.entries.firstOrNull { (key, value) -> value === this }?.key ?: super.toString()
     }
 
     abstract class RunOnce<R> : Task<R>() {

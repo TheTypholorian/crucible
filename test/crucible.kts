@@ -3,14 +3,29 @@ repositories {
     typhoNet()
 }
 
-dependencies {
-    kotlin("stdlib")
-    add("net.typho:data_util:1.4.2")
-    add("net.typho:asm_util:1.3.6")
+println("test")
+
+val module = modules.register("main") {
+    println("test")
+
+    dependencies {
+        kotlin("stdlib")
+        add("net.typho:data_util:1.4.2")
+        add("net.typho:asm_util:1.3.6")
+    }
+
+    println("test")
+
+    java()
+    println("test")
+    resources()
+    println("test")
+    kotlin()
+    println("test")
+
+    compileTask()
+    jarTask()
+    runTask(mainClass = "Test")
 }
 
-registerTask<JavaExecTask>("run") {
-    classpath.addAll { dependencies.getPaths(DependencyPathType.BINARY) }
-    classpath.addAll(CompileTask.Main)
-    mainClass.set("Test")
-}
+println("test2")

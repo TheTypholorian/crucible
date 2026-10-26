@@ -23,7 +23,7 @@ import com.intellij.util.Function
 import com.intellij.util.messages.Topic
 import com.intellij.util.xmlb.annotations.OptionTag
 import icons.ExternalSystemIcons
-import net.typho.crucible.ide.data.CrucibleIDEData
+import net.typho.crucible.ide.data.IDEProject
 import net.typho.crucible.intellij.task.CrucibleSystemTaskManager
 import net.typho.data_util.impl.JsonFormat
 import java.io.File
@@ -183,10 +183,10 @@ class CrucibleSystemManager : ExternalSystemManager<CrucibleSystemManager.Projec
         class State : AbstractExternalSystemLocalSettings.State() {
             @JvmField
             @OptionTag(converter = CrucibleIDEDataConverter::class)
-            var info: CrucibleIDEData? = null
+            var info: IDEProject? = null
 
-            fun loadInfo(projectPath: Path): CrucibleIDEData {
-                val info = JsonFormat().read(CrucibleIDEData.CODEC, projectPath.resolve(".crucible").resolve("ide.json").readText())
+            fun loadInfo(projectPath: Path): IDEProject {
+                val info = JsonFormat().read(IDEProject.CODEC, projectPath.resolve(".crucible").resolve("ide.json").readText())
                 this.info = info
                 return info
             }

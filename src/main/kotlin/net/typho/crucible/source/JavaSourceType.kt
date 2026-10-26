@@ -1,12 +1,12 @@
 package net.typho.crucible.source
 
 import net.typho.crucible.Crucible
+import net.typho.crucible.Module
 import net.typho.crucible.deps.classpathString
 import net.typho.crucible.error.CompilationException
 import net.typho.crucible.error.ToolNotFoundException
 import net.typho.crucible.ide.data.DependencyPathType
 import net.typho.crucible.ide.data.SourceSetType
-import net.typho.misc_util.EventGraph
 import javax.tools.Diagnostic
 import javax.tools.JavaFileObject
 import javax.tools.ToolProvider
@@ -16,16 +16,14 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.walk
 
-open class JavaSourceSet : SourceSet() {
+open class JavaSourceType(
+    module: Module
+) : SourceType(module) {
     override val id = "java"
     override val type = SourceSetType.CODE
 
-    override fun postRegister(event: EventGraph<String, *>.Event) {
-        event.after(KotlinSourceSet.Main)
-    }
-
     @OptIn(ExperimentalPathApi::class)
-    override fun compile(all: List<SourceSet>, previous: List<SourceSet>) {
+    override fun compile(all: List<SourceType>, previous: List<SourceType>) {
         output().deleteRecursively()
         output().createDirectories()
 
@@ -35,7 +33,7 @@ open class JavaSourceSet : SourceSet() {
         val files = manager.getJavaFileObjectsFromPaths(inputs.flatMap { it.walk() })
         val options = listOf(
             "-d", output().absolutePathString(),
-            "-cp", (Crucible.dependencies.getPaths(DependencyPathType.BINARY) + previous.map { it.output() }).classpathString(),
+            "-cp", (module.dependencies.getPaths(DependencyPathType.BINARY) + previous.map { it.output() }).classpathString(),
             "--release", Crucible.javaVersion()
         )
         val success = javaCompiler.getTask(null, manager, diagnostics::add, options, null, files).call()
@@ -44,6 +42,4 @@ open class JavaSourceSet : SourceSet() {
             throw CompilationException(diagnostics.joinToString(separator = "\n").trim())
         }
     }
-
-    object Main : JavaSourceSet()
 }
