@@ -34,7 +34,7 @@ class Module(
 
     fun toIDE() = IDEModule(
         id,
-        sourceInputFolder().absolutePathString(),
+        Crucible.projectRoot.absolutePathString(),//sourceInputFolder().absolutePathString(),
         sourceTypes.resolve().flatMap { type -> type.event.inputs().map { IDEContentRoot(type.event.type, false, it.absolutePathString()) } },
         dependencies
     )

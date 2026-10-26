@@ -89,6 +89,10 @@ open class Property<V>(
         set(value)
     }
 
+    open fun set(property: Property<out V>) {
+        setLazy { property() }
+    }
+
     open fun setLazy(supplier: Supplier<V>) {
         value0 = LazyValue(supplier)
     }
