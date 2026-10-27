@@ -24,7 +24,7 @@ class Repositories : ArrayList<String>() {
 
     fun typhoNet() = maven(TYPHO_NET)
 
-    fun find(name: DependencyName): List<Path> {
+    fun find(name: DependencyName): Path? {
         return MavenCache.resolveArtifact(name, this)
     }
 

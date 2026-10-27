@@ -1,15 +1,11 @@
 package net.typho.crucible.wrapper
 
-import net.typho.crucible.wrapper.CrucibleClassLoader.addLibrary
 import net.typho.crucible.wrapper.log.*
 import net.typho.data_util.DataReadException
 import net.typho.data_util.impl.JsonFormat
-import org.eclipse.aether.collection.CollectRequest
-import org.eclipse.aether.graph.Dependency
 import org.eclipse.aether.repository.RemoteRepository
 import org.eclipse.aether.resolution.ArtifactRequest
 import org.eclipse.aether.resolution.ArtifactResolutionException
-import org.eclipse.aether.resolution.DependencyRequest
 import org.eclipse.aether.supplier.RepositorySystemSupplier
 import org.eclipse.aether.supplier.SessionBuilderSupplier
 import org.eclipse.aether.transfer.ArtifactNotFoundException
@@ -36,6 +32,7 @@ object MavenCache : TransferListener {
             .withTransferListener(this)
             .build()
     }
+    /*
     @JvmField
     val lookupFile = CrucibleWrapper.mavenCacheFolder.resolve("lookup.json")
     @Suppress("UNCHECKED_CAST")
@@ -57,30 +54,25 @@ object MavenCache : TransferListener {
                     .mapValues { (key, value) -> value.map { it.absolutePathString() } }
             ))
         }
+     */
     @JvmField
     val repositories = mutableMapOf<String, RemoteRepository>()
 
     @JvmStatic
-    fun resolveArtifact(name: DependencyName, repositories: List<String>): List<Path> {
+    fun resolveArtifact(name: DependencyName, repositories: List<String>): Path? {
+        /*
         if (CrucibleWrapper.hardCaching) {
             lookup[name]?.let { return it }
         }
+         */
 
         try {
-            val request = CollectRequest()
-            request.repositories = repositories.map { this.repositories.computeIfAbsent(it) { RemoteRepository.Builder(it, "default", it).build() } }
-            request.dependencies = listOf(Dependency(name.toArtifact(), "runtime"))
-
-            val dependencies = system.collectDependencies(session, request)
-            val paths = system.resolveDependencies(session, DependencyRequest(dependencies.root, null))
-                .artifactResults
-                .map { it.artifact.path }
-
-            lookup += name to paths
-            return paths
+            val artifact = system.resolveArtifact(session, ArtifactRequest(name.toArtifact(), repositories.map { this.repositories.computeIfAbsent(it) { RemoteRepository.Builder(it, "default", it).build() } }, null)).artifact
+            //lookup += name to artifact.path
+            return artifact.path
         } catch (e: ArtifactResolutionException) {
             if (e.result.exceptions.all { it is ArtifactNotFoundException }) {
-                return listOf()
+                return null
             } else {
                 throw e
             }
