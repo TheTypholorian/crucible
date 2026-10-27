@@ -30,6 +30,9 @@ dependencies {
     implementation("net.typho:data_util:1.4.2")
     implementation("net.typho:misc_util:1.1.0")
 
+    implementation("org.vineflower:vineflower:1.12.0")
+    implementation("org.semver4j:semver4j:6.0.0")
+
     implementation(kotlin("compiler-embeddable"))
     implementation(kotlin("scripting-jvm"))
     implementation(kotlin("scripting-jvm-host"))

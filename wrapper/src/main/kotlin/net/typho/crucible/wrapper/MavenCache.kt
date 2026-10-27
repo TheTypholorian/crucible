@@ -22,7 +22,6 @@ import kotlin.io.path.writeText
 object MavenCache : TransferListener {
     val system by lazy {
         info("> Initializing maven stuff")
-        error(RuntimeException())
         RepositorySystemSupplier().get()
     }
     val session by lazy {
