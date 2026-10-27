@@ -1,7 +1,6 @@
 package net.typho.crucible.wrapper
 
 import net.typho.crucible.wrapper.log.debug
-import net.typho.crucible.wrapper.log.info
 import net.typho.misc_util.KtServiceLoader
 import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.collection.CollectRequest
@@ -29,7 +28,11 @@ object CrucibleClassLoader : URLClassLoader(
         return artifact.path
     }
 
-    public override fun addURL(url: URL) = super.addURL(url)
+    public override fun addURL(url: URL) {
+        if (!urLs.contains(url)) {
+            super.addURL(url)
+        }
+    }
 
     private fun shouldLoad(coords: DependencyName): Boolean {
         val currentVersion = this.artifacts.values.flatten().firstOrNull { artifact ->

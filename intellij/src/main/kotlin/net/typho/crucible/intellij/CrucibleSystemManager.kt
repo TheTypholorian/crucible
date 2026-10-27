@@ -186,7 +186,7 @@ class CrucibleSystemManager : ExternalSystemManager<CrucibleSystemManager.Projec
             var info: IDEProject? = null
 
             fun loadInfo(projectPath: Path): IDEProject {
-                val info = JsonFormat().read(IDEProject.CODEC, projectPath.resolve(".crucible").resolve("ide.json").readText())
+                val info = JsonFormat.read(IDEProject.CODEC, projectPath.resolve(".crucible").resolve("ide.json").readText())
                 this.info = info
                 return info
             }

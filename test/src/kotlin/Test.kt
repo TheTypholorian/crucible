@@ -5,7 +5,7 @@ object Test {
     fun main(args: Array<String>) {
         val v = 10.times(20)
         println("yay! it works! $v")
-        println(JsonFormat().read("{\"abc\": 123}"))
+        println(JsonFormat.read("{\"abc\": 123}"))
         SideClass.side()
         JavaClass.sayHi()
     }

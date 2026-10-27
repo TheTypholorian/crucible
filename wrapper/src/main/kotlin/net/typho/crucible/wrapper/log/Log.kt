@@ -102,6 +102,8 @@ class SLF4JServiceProviderImpl : SLF4JServiceProvider, ILoggerFactory {
                 if (format.throwable == null) format.message else format.message + "\n" + format.throwable.fullToString()
             }
 
+            RuntimeException().printStackTrace()
+
             when (level) {
                 Level.ERROR -> error0(message)
                 Level.WARN -> warn0(message)

@@ -6,7 +6,7 @@ import org.eclipse.aether.artifact.DefaultArtifact
 @JvmInline
 value class DependencyName(
     /**
-     * Should be in the format `<groupId>:<artifactId>[:<extension>[:<classifier>]]:<version>`
+     * Must be in the format `<groupId>:<artifactId>[[:<classifier>]:<version>]`
      */
     @JvmField
     val coordinates: String
@@ -17,67 +17,74 @@ value class DependencyName(
         get() = components[0]
     val artifactId: String
         get() = components[1]
-    val extension: String?
-        get() = components.let { if (it.size >= 4) it[2] else null }
     val classifier: String?
-        get() = components.let { if (it.size >= 5) it[3] else null }
-    val version: String
-        get() = components.last()
+        get() = components.let { if (it.size >= 4) it[2] else null }
+    val version: String?
+        get() = components.let { if (it.size >= 3) it.last() else null }
 
     init {
-        if (components.size < 3) {
-            throw IllegalArgumentException("Illegal dependency name '$coordinates' (must be in the format <groupId>:<artifactId>[:<extension>[:<classifier>]]:<version>)")
+        if (components.size !in 2..4) {
+            throw IllegalArgumentException("Illegal dependency name '$coordinates' (must be in the format <groupId>:<artifactId>[[:<classifier>]:<version>])")
         }
     }
 
     constructor(artifact: Artifact) : this(
         artifact.groupId,
         artifact.artifactId,
-        artifact.version,
-        if (artifact.extension.isEmpty() || artifact.extension == "jar") null else artifact.extension,
-        artifact.classifier.ifEmpty { null }
+        artifact.classifier.ifEmpty { null },
+        artifact.version.ifEmpty { null }
     )
 
     constructor(
         groupId: String,
         artifactId: String,
-        version: String,
-        extension: String? = null,
-        classifier: String? = null
+        classifier: String? = null,
+        version: String?
     ) : this(buildString {
+        if (classifier != null && version == null) {
+            throw IllegalArgumentException("Dependency name cannot have a null version and a non-null classifier")
+        }
+
         append(groupId)
         append(':')
         append(artifactId)
 
-        if (extension != null) {
+        if (classifier != null) {
             append(':')
-            append(extension)
-
-            if (classifier != null) {
-                append(':')
-                append(classifier)
-            }
-        } else if (classifier != null) {
-            throw IllegalArgumentException("Dependency name cannot have a null extension and a non-null classifier")
+            append(classifier)
         }
 
-        append(':')
-        append(version)
+        if (version != null) {
+            append(':')
+            append(version)
+        }
     })
 
     @JvmOverloads
     fun toArtifact(
         groupId: String = this.groupId,
         artifactId: String = this.artifactId,
-        version: String = this.version,
-        extension: String? = this.extension,
-        classifier: String? = this.classifier
+        classifier: String? = this.classifier,
+        version: String? = this.version
     ) = DefaultArtifact(
         groupId,
         artifactId,
         classifier,
-        extension ?: "jar",
+        "jar",
         version
+    )
+
+    @JvmOverloads
+    fun copy(
+        groupId: String = this.groupId,
+        artifactId: String = this.artifactId,
+        classifier: String? = this.classifier,
+        version: String? = this.version
+    ) = DependencyName(
+        groupId = groupId,
+        artifactId = artifactId,
+        classifier = classifier,
+        version = version
     )
 
     @JvmOverloads
@@ -85,9 +92,8 @@ value class DependencyName(
         artifact: Artifact,
         checkGroup: Boolean = true,
         checkArtifact: Boolean = true,
-        checkVersion: Boolean = true,
-        checkExtension: Boolean = true,
-        checkClassifier: Boolean = true
+        checkClassifier: Boolean = true,
+        checkVersion: Boolean = true
     ): Boolean {
         if (checkGroup && artifact.groupId != groupId) {
             return false
@@ -97,15 +103,11 @@ value class DependencyName(
             return false
         }
 
-        if (checkVersion && artifact.version != version) {
-            return false
-        }
-
-        if (checkExtension && artifact.extension != extension) {
-            return false
-        }
-
         if (checkClassifier && artifact.classifier != classifier) {
+            return false
+        }
+
+        if (checkVersion && artifact.version != version) {
             return false
         }
 
@@ -115,9 +117,8 @@ value class DependencyName(
     fun toString(
         withGroup: Boolean = true,
         withArtifact: Boolean = true,
-        withVersion: Boolean = true,
-        withExtension: Boolean = true,
-        withClassifier: Boolean = true
+        withClassifier: Boolean = true,
+        withVersion: Boolean = true
     ): String = buildList {
         if (withGroup) {
             add(groupId)
@@ -127,16 +128,12 @@ value class DependencyName(
             add(artifactId)
         }
 
-        if (withExtension) {
-            extension?.let { add(it) }
-        }
-
         if (withClassifier) {
             classifier?.let { add(it) }
         }
 
         if (withVersion) {
-            add(version)
+            version?.let { add(it) }
         }
     }.joinToString(separator = ":")
 

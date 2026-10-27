@@ -31,7 +31,7 @@ object RefreshIDETask : Task<Unit>(), InternalTask {
         )
 
         Crucible.ideInfoFile.parent.createDirectories()
-        Crucible.ideInfoFile.writeText(JsonFormat().write(IDEProject.CODEC, data))
+        Crucible.ideInfoFile.writeText(JsonFormat.write(IDEProject.CODEC, data))
 
         Crucible.scriptInfoFile.parent.createDirectories()
         ObjectOutputStream(Crucible.scriptInfoFile.outputStream()).use {

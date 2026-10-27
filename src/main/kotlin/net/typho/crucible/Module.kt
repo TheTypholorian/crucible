@@ -27,7 +27,7 @@ class Module(
     @JvmField
     val sourceTypes = EventGraph<String, SourceType>()
     @JvmField
-    val dependencies = Dependencies(Crucible.repositories)
+    val dependencies = Dependencies(Crucible.repositories, Crucible.fallbackDependencyVersions /* TODO */)
     lateinit var compileTask: CompileTask
 
     fun dependencies(action: Dependencies.() -> Unit) = action(dependencies)

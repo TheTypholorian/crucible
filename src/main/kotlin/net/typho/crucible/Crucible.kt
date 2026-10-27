@@ -10,6 +10,7 @@ import net.typho.crucible.task.Task
 import net.typho.crucible.wrapper.CrucibleClassLoader
 import net.typho.crucible.wrapper.CrucibleWrapper
 import net.typho.crucible.wrapper.log.*
+import net.typho.data_util.impl.JsonFormat
 import org.jetbrains.kotlin.ir.types.IdSignatureValues.result
 import java.io.File
 import java.nio.file.Path
@@ -60,12 +61,25 @@ object Crucible : PropertyContainer() {
 
     val buildFolder by lazyProperty { System.getProperty("crucible.build_folder")?.let { Path(it).absolute() } ?: projectRoot.resolve("build") }.finalizeOnRead()
     val configScriptFile by lazyProperty { System.getProperty("crucible.config_script")?.let { Path(it).absolute() } ?: projectRoot.resolve("crucible.kts") }.finalizeOnRead()
+    val dependencyVersionsFile by lazyProperty { System.getProperty("crucible.dependency_versions_file")?.let { Path(it).absolute() } ?: projectRoot.resolve("deps.json") }.finalizeOnRead()
 
     @JvmField
     val repositories = Repositories()
-
     @JvmField
     val modules = NamedContainer { Module(it) }
+
+    @JvmField
+    val fallbackDependencyVersions = mutableMapOf<String, String>()
+
+    @Suppress("UNCHECKED_CAST")
+    @JvmStatic
+    fun loadDependencyVersions(path: Path): Map<String, String> {
+        return if (path.exists()) {
+            JsonFormat.read(path.readText()) as Map<String, String>
+        } else {
+            mapOf()
+        }
+    }
 
     internal val loadedScripts = mutableSetOf<String>()
 
@@ -115,6 +129,7 @@ object Crucible : PropertyContainer() {
     fun main(args: Array<String>) {
         val startTime = System.currentTimeMillis()
 
+        fallbackDependencyVersions.putAll(loadDependencyVersions(dependencyVersionsFile()))
         loadConfigScript(configScriptFile())
 
         info("> Finished config phase in ${System.currentTimeMillis() - startTime} ms")

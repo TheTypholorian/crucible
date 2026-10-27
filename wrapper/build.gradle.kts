@@ -20,6 +20,7 @@ dependencies {
     implementation("org.apache.maven.resolver:maven-resolver-transport-file:2.0.21")
     implementation("org.apache.maven.resolver:maven-resolver-supplier-mvn3:2.0.21")
     implementation("net.typho:misc_util:1.1.0")
+    implementation("net.typho:data_util:1.4.2")
 }
 
 kotlin {

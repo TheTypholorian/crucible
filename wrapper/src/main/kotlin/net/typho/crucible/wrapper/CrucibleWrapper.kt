@@ -1,6 +1,7 @@
 package net.typho.crucible.wrapper
 
 import net.typho.crucible.wrapper.log.warn
+import org.eclipse.aether.repository.RepositoryPolicy
 import java.lang.reflect.InvocationTargetException
 import java.nio.file.Path
 import java.util.Properties
@@ -54,6 +55,8 @@ object CrucibleWrapper {
     var debug = System.getProperty("crucible.debug") == "true" || System.getProperty("intellij.debug.agent") == "true"
     @JvmField
     val crucibleVersion = System.getProperty("crucible.version") ?: throw IllegalStateException("Must set property 'crucible.version' (via system properties or by setting it in $projectPropertiesFile")
+    @JvmField
+    val hardCaching = System.getProperty("crucible.hard_caching")?.toBoolean() ?: false
 
     @JvmStatic
     fun main(args: Array<String>) {
