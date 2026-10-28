@@ -30,11 +30,11 @@ class StonecutterDecompiler(
         return buildString {
             for (block in blocks) {
                 if (!block.content.isBlank()) {
-                    if (block.versions.size == versionLookup.size) {
+                    if (block.files.size == versionLookup.size) {
                         append(block.content)
                     } else {
-                        val blockVersions = block.versions.mapTo(mutableSetOf()) { versionLookup[it] }
-                        val range = mergeVersions(
+                        val blockVersions = block.files.mapTo(mutableSetOf()) { versionLookup[it] }
+                        val range = createVersionRange(
                             versionLookup,
                             blockVersions
                         )
@@ -69,7 +69,7 @@ class StonecutterDecompiler(
         }
 
         @JvmStatic
-        fun mergeVersions(
+        fun createVersionRange(
             allVersions: List<String>,
             validVersions: Set<String>
         ): String {
@@ -89,7 +89,7 @@ class StonecutterDecompiler(
                         start == 0 && end == allVersions.lastIndex -> "*"
                         start == 0 -> "<=${allVersions[end]}"
                         end == allVersions.lastIndex -> ">=${allVersions[start]}"
-                        start == end -> "=${allVersions[start]}"
+                        start == end -> allVersions[start]
                         else -> ">=${allVersions[start]} <=${allVersions[end]}"
                     }
 
@@ -105,11 +105,66 @@ class StonecutterDecompiler(
             @JvmField
             val content: String,
             @JvmField
-            val versions: Set<Int>
+            val files: Set<Int>
         )
 
         @JvmStatic
+        fun diffFiles(columns: Map<Int, List<String>>): List<Block> {
+            if (columns.isEmpty()) {
+                return listOf()
+            }
+
+            val columns = columns.mapValuesTo(mutableMapOf()) { it.value.toMutableList() }
+            val blocks = mutableListOf<Block>()
+
+            while (true) {
+                columns.entries.removeIf { it.value.isEmpty() }
+
+                if (columns.isEmpty()) {
+                    break
+                }
+
+                val row = columns.map { it.value.first() }
+                val check = row.first()
+                println("Checking row $row")
+
+                if (row.all { it == check }) {
+                    println("Take whole block")
+                    blocks.add(Block(check, row.indices.toSet()))
+                    columns.forEach { it.value.removeFirstOrNull() }
+                } else {
+                    val excess = mutableMapOf<Int, List<String>>()
+                    val indices = columns.mapValues { it.value.indexOf(check) }.filter { it.value != -1 }
+                    indices.forEach { (file, index) ->
+                        val column = columns[file]!!
+
+                        if (index > 0) {
+                            excess[file] = column.filterIndexed { i, string -> i < index }
+
+                            repeat(index) {
+                                column.removeFirst()
+                            }
+                        }
+                    }
+                    println("Excess $excess indices $indices")
+
+                    if (excess.any { it.value.isNotEmpty() }) {
+                        println("Full diff")
+                        blocks.addAll(diffFiles(excess))
+                    }
+
+                    blocks.add(Block(check, indices.keys))
+                }
+            }
+
+            return blocks
+        }
+
+        @JvmStatic
         fun diffFiles(files: List<String>): List<Block> {
+            return diffFiles(files.mapIndexed { index, text -> index to text }.associate { (index, text) -> index to text.lines() })
+
+            /*
             if (files.isEmpty()) {
                 return emptyList()
             }
@@ -208,6 +263,7 @@ class StonecutterDecompiler(
 
                 flush()
             }
+             */
         }
 
         @JvmStatic
