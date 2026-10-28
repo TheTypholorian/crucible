@@ -27,7 +27,7 @@ val module = modules.register(name()) {
 
 try {
     println("test")
-    StonecutterDecompiler.diffFiles(listOf(
+    val diffs = StonecutterDecompiler.diffFiles(listOf(
         """
         abc
         abc
@@ -58,7 +58,12 @@ try {
         extra text abc
         abc
     """.trimIndent()
-    )).forEach { println(it) }
+    ))
+    diffs.forEach { println(it) }
+    repeat(3) { i ->
+        println("$i: ")
+        println(diffs.filter { it.files.contains(i) }.joinToString(separator = "\n") { it.content })
+    }
 } catch (e: Exception) {
     e.printStackTrace()
 }

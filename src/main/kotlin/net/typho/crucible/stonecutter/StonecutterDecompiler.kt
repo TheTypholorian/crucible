@@ -126,11 +126,9 @@ class StonecutterDecompiler(
 
                 val row = columns.map { it.value.first() }
                 val check = row.first()
-                println("Checking row $row")
 
                 if (row.all { it == check }) {
-                    println("Take whole block")
-                    blocks.add(Block(check, row.indices.toSet()))
+                    blocks.add(Block(check, columns.keys.toSet()))
                     columns.forEach { it.value.removeFirstOrNull() }
                 } else {
                     val excess = mutableMapOf<Int, List<String>>()
@@ -140,20 +138,17 @@ class StonecutterDecompiler(
 
                         if (index > 0) {
                             excess[file] = column.filterIndexed { i, string -> i < index }
-
-                            repeat(index) {
-                                column.removeFirst()
-                            }
                         }
                     }
-                    println("Excess $excess indices $indices")
 
                     if (excess.any { it.value.isNotEmpty() }) {
-                        println("Full diff")
                         blocks.addAll(diffFiles(excess))
                     }
 
                     blocks.add(Block(check, indices.keys))
+                    indices.forEach { (file, index) ->
+                        repeat(index + 1) { columns[file]!!.removeFirst() }
+                    }
                 }
             }
 
