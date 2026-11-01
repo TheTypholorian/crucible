@@ -1,6 +1,5 @@
 import net.typho.crucible.stonecutter.StonecutterDecompiler
 
-/*
 repositories {
     mavenCentral()
     typhoNet()
@@ -11,8 +10,8 @@ val module = modules.register(name()) {
 
     dependencies {
         kotlin("stdlib")
-        add("net.typho:data_util")
-        add("net.typho:asm_util")
+        add("net.typho", "data_util")
+        add("net.typho", "asm_util")
     }
 
     java()
@@ -23,8 +22,8 @@ val module = modules.register(name()) {
     jarTask()
     runTask(mainClass = "Test")
 }
- */
 
+/*
 try {
     println("test")
     val diffs = StonecutterDecompiler.diffFiles(listOf(
@@ -67,3 +66,4 @@ try {
 } catch (e: Exception) {
     e.printStackTrace()
 }
+ */

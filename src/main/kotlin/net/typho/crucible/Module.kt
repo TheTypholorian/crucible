@@ -27,15 +27,15 @@ class Module(
     @JvmField
     val sourceTypes = EventGraph<String, SourceType>()
     @JvmField
-    val dependencies = Dependencies(Crucible.repositories, Crucible.fallbackDependencyVersions /* TODO */)
+    val dependencies = Dependencies(Crucible.repositories)
     lateinit var compileTask: CompileTask
 
     fun dependencies(action: Dependencies.() -> Unit) = action(dependencies)
 
     fun toIDE() = IDEModule(
         id,
-        Crucible.projectRoot.absolutePathString(),//sourceInputFolder().absolutePathString(),
-        sourceTypes.resolve().flatMap { type -> type.event.inputs().map { IDEContentRoot(type.event.type, false, it.absolutePathString()) } },
+        Crucible.projectRoot,//sourceInputFolder().absolutePathString(),
+        sourceTypes.resolve().flatMap { type -> type.event.inputs().map { IDEContentRoot(type.event.type, false, it) } },
         dependencies
     )
 

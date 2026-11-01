@@ -3,13 +3,11 @@ package net.typho.crucible.script
 import net.typho.crucible.plugins.Plugins
 import net.typho.crucible.property.PropertyContainer
 import net.typho.crucible.wrapper.CrucibleClassLoader
-import net.typho.crucible.wrapper.DependencyName
-import net.typho.crucible.wrapper.MavenCache
 import net.typho.crucible.wrapper.log.error
-import org.eclipse.aether.resolution.ArtifactRequest
-import org.eclipse.aether.resolution.ArtifactResolutionException
-import org.eclipse.aether.transfer.ArtifactNotFoundException
+import net.typho.maven_util.ArtifactCoords
 import java.io.File
+import java.net.URI
+import kotlin.collections.mapTo
 import kotlin.io.path.toPath
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.jvm.*
@@ -46,19 +44,7 @@ abstract class AbstractProjectConfig {
                 acceptedLocations(ScriptAcceptedLocation.Project)
 
                 if (includeSources) {
-                    dependenciesSources.append(JvmDependency(CrucibleClassLoader.artifacts.flatMap { (repository, artifacts) ->
-                        artifacts.mapNotNull { artifact ->
-                            try {
-                                MavenCache.system.resolveArtifact(MavenCache.session, ArtifactRequest(DependencyName(artifact).toArtifact(classifier = "sources"), listOf(repository), null)).artifact.path.toFile()
-                            } catch (e: ArtifactResolutionException) {
-                                if (e.result.exceptions.all { it is ArtifactNotFoundException }) {
-                                    null
-                                } else {
-                                    throw e
-                                }
-                            }
-                        }
-                    }))
+                    dependenciesSources.append(JvmDependency(CrucibleClassLoader.sources.map { it.artifact.toFile() }))
                 }
             }
 
@@ -76,7 +62,7 @@ abstract class AbstractProjectConfig {
                     ?.get(ScriptCollectedData.collectedAnnotations)
                     ?.mapNotNull { anno -> anno.annotation as? Plugins }
                     ?.forEach { anno ->
-                        CrucibleClassLoader.load(anno.repositories.asList(), anno.plugins.asList()).mapTo(plugins) { it.toFile() }
+                        CrucibleClassLoader.load(anno.repositories.map { URI(it) }, anno.plugins.map { ArtifactCoords(it) }).mapTo(plugins) { it.artifact.toFile() }
                     }
 
                 return context.compilationConfiguration

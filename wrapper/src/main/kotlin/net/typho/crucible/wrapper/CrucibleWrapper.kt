@@ -1,7 +1,8 @@
 package net.typho.crucible.wrapper
 
 import net.typho.crucible.wrapper.log.warn
-import org.eclipse.aether.repository.RepositoryPolicy
+import net.typho.maven_util.ArtifactCoords
+import net.typho.maven_util.MavenUtil
 import java.lang.reflect.InvocationTargetException
 import java.nio.file.Path
 import java.util.Properties
@@ -32,8 +33,6 @@ object CrucibleWrapper {
     }
 
     @JvmField
-    val mavenLocal = Path("${System.getProperty("user.home")}/.m2/repository").toUri().toString()
-    @JvmField
     val projectRoot = System.getProperty("crucible.project_root")?.let { Path(it) } ?: Path(System.getProperty("user.dir"))
     @JvmField
     val projectPropertiesFile = projectRoot.resolve("crucible.properties")
@@ -55,8 +54,6 @@ object CrucibleWrapper {
     var debug = System.getProperty("crucible.debug") == "true" || System.getProperty("intellij.debug.agent") == "true"
     @JvmField
     val crucibleVersion = System.getProperty("crucible.version") ?: throw IllegalStateException("Must set property 'crucible.version' (via system properties or by setting it in $projectPropertiesFile")
-    @JvmField
-    val hardCaching = System.getProperty("crucible.hard_caching")?.toBoolean() ?: false
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -65,12 +62,12 @@ object CrucibleWrapper {
 
         CrucibleClassLoader.load(
             listOf(
-                mavenLocal,
-                "https://repo1.maven.org/maven2",
-                "https://typho.net/maven"
+                MavenUtil.MAVEN_LOCAL.toUri(),
+                MavenUtil.MAVEN_CENTRAL,
+                MavenUtil.TYPHO_NET
             ),
             listOf(
-                "net.typho:crucible:$crucibleVersion"
+                ArtifactCoords("net.typho", "crucible", crucibleVersion)
             )
         )
 

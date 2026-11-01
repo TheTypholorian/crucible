@@ -26,8 +26,8 @@ repositories {
 }
 
 dependencies {
-    implementation("net.typho:crucible.ide_data:1.8.0")
-    implementation("net.typho:data_util:1.4.2")
+    implementation("net.typho:crucible.ide_data:1.9.1")
+    implementation("net.typho:data_util:2.3.10")
     implementation("net.typho:misc_util:1.1.0")
 
     implementation("org.vineflower:vineflower:1.12.0")
@@ -38,13 +38,7 @@ dependencies {
     implementation(kotlin("scripting-jvm-host"))
     compileOnly(project("crucible.wrapper"))
 
-    compileOnly("org.apache.maven:maven-model:3.9.11")
-    compileOnly("org.apache.maven.resolver:maven-resolver-api:2.0.21")
-    compileOnly("org.apache.maven.resolver:maven-resolver-util:2.0.21")
-    compileOnly("org.apache.maven.resolver:maven-resolver-impl:2.0.21")
-    compileOnly("org.apache.maven.resolver:maven-resolver-connector-basic:2.0.21")
-    compileOnly("org.apache.maven.resolver:maven-resolver-transport-file:2.0.21")
-    compileOnly("org.apache.maven.resolver:maven-resolver-supplier-mvn3:2.0.21")
+    compileOnly("net.typho:maven_util:1.4.1")
 }
 
 kotlin {

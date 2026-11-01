@@ -25,7 +25,8 @@ import com.intellij.util.xmlb.annotations.OptionTag
 import icons.ExternalSystemIcons
 import net.typho.crucible.ide.data.IDEProject
 import net.typho.crucible.intellij.task.CrucibleSystemTaskManager
-import net.typho.data_util.impl.JsonFormat
+import net.typho.data_util.SerializedData
+import net.typho.data_util.json.JsonFormat
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -186,7 +187,7 @@ class CrucibleSystemManager : ExternalSystemManager<CrucibleSystemManager.Projec
             var info: IDEProject? = null
 
             fun loadInfo(projectPath: Path): IDEProject {
-                val info = JsonFormat.read(IDEProject.CODEC, projectPath.resolve(".crucible").resolve("ide.json").readText())
+                val info = JsonFormat.read(IDEProject.CODEC, SerializedData(projectPath.resolve(".crucible").resolve("ide.json")))
                 this.info = info
                 return info
             }

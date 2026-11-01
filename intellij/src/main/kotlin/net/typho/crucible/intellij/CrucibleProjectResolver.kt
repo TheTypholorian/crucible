@@ -35,6 +35,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.CompletableFuture
 import kotlin.io.path.Path
 import kotlin.io.path.absolute
+import kotlin.io.path.absolutePathString
 
 class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemManager.ExecutionSettings> {
     override fun resolveProjectInfo(
@@ -113,18 +114,18 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
                         SYSTEM_ID,
                         GeneralModuleType.TYPE_ID,
                         module.name,
-                        module.path,
-                        module.path
+                        module.path.absolutePathString(),
+                        module.path.absolutePathString()
                     )
                 ).also { moduleNode ->
                     for (set in module.roots) {
                         moduleNode.createChild(
                             ProjectKeys.CONTENT_ROOT,
-                            ContentRootData(SYSTEM_ID, set.path).also { sourceSetData ->
+                            ContentRootData(SYSTEM_ID, set.path.absolutePathString()).also { sourceSetData ->
                                 sourceSetData.storePath(when (set.type) {
                                     SourceSetType.CODE -> if (set.generated) ExternalSystemSourceType.SOURCE_GENERATED else ExternalSystemSourceType.SOURCE
                                     SourceSetType.RESOURCES -> if (set.generated) ExternalSystemSourceType.RESOURCE_GENERATED else ExternalSystemSourceType.RESOURCE
-                                }, set.path)
+                                }, set.path.absolutePathString())
                             }
                         )
                     }
@@ -143,7 +144,7 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
                                             DependencyPathType.BINARY -> LibraryPathType.BINARY
                                             DependencyPathType.SOURCE -> LibraryPathType.SOURCE
                                             DependencyPathType.DOC -> LibraryPathType.DOC
-                                        }, path.path)
+                                        }, path.path.absolutePathString())
                                     }
                                 },
                                 LibraryLevel.MODULE

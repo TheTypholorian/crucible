@@ -1,6 +1,5 @@
 package net.typho.crucible
 
-import net.typho.crucible.deps.Dependencies
 import net.typho.crucible.deps.Repositories
 import net.typho.crucible.error.CompilationException
 import net.typho.crucible.error.ConfigScriptException
@@ -10,8 +9,8 @@ import net.typho.crucible.task.Task
 import net.typho.crucible.wrapper.CrucibleClassLoader
 import net.typho.crucible.wrapper.CrucibleWrapper
 import net.typho.crucible.wrapper.log.*
-import net.typho.data_util.impl.JsonFormat
-import org.jetbrains.kotlin.ir.types.IdSignatureValues.result
+import net.typho.data_util.SerializedData
+import net.typho.data_util.json.JsonFormat
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
@@ -75,7 +74,7 @@ object Crucible : PropertyContainer() {
     @JvmStatic
     fun loadDependencyVersions(path: Path): Map<String, String> {
         return if (path.exists()) {
-            JsonFormat.read(path.readText()) as Map<String, String>
+            JsonFormat.read(SerializedData(path)) as Map<String, String>
         } else {
             mapOf()
         }
@@ -95,7 +94,7 @@ object Crucible : PropertyContainer() {
 
     @JvmStatic
     fun loadConfigScript(code: String, path: String) {
-        debug("Loading config script $path")
+        val start = System.currentTimeMillis()
         loadedScripts.add(path)
         val result = try {
             BasicJvmScriptingHost(ScriptingHostConfiguration {
@@ -122,6 +121,7 @@ object Crucible : PropertyContainer() {
                 ScriptDiagnostic.Severity.ERROR, ScriptDiagnostic.Severity.FATAL -> throw ConfigScriptException(it)
             }
         }
+        debug("Loading config script $path took ${System.currentTimeMillis() - start} ms")
     }
 
     @OptIn(ExperimentalPathApi::class)

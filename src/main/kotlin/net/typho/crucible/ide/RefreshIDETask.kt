@@ -1,16 +1,13 @@
 package net.typho.crucible.ide
 
 import net.typho.crucible.Crucible
-import net.typho.crucible.ide.data.IDEModule
 import net.typho.crucible.ide.data.IDEProject
 import net.typho.crucible.ide.data.IDETask
 import net.typho.crucible.script.AbstractProjectConfig
-import net.typho.crucible.source.SourceType
 import net.typho.crucible.task.InternalTask
 import net.typho.crucible.task.Task
-import net.typho.data_util.impl.JsonFormat
+import net.typho.data_util.json.JsonFormat
 import java.io.ObjectOutputStream
-import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 import kotlin.io.path.outputStream
 import kotlin.io.path.writeText
@@ -31,7 +28,7 @@ object RefreshIDETask : Task<Unit>(), InternalTask {
         )
 
         Crucible.ideInfoFile.parent.createDirectories()
-        Crucible.ideInfoFile.writeText(JsonFormat.write(IDEProject.CODEC, data))
+        Crucible.ideInfoFile.writeText(JsonFormat.write(IDEProject.CODEC, data).asString())
 
         Crucible.scriptInfoFile.parent.createDirectories()
         ObjectOutputStream(Crucible.scriptInfoFile.outputStream()).use {

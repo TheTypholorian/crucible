@@ -1,8 +1,7 @@
 package net.typho.crucible.ide.data
 
-import net.typho.data_util.DataReadException
 import net.typho.data_util.codec.Codec
-import net.typho.data_util.codec.VersionedCodec
+import net.typho.data_util.error.DataReadException
 
 data class IDEProject(
     @JvmField
@@ -15,20 +14,22 @@ data class IDEProject(
     val scriptFiles: List<String>
 ) {
     companion object {
-        const val VERSION = "1.8.0"
-        private val REFLECTED_CODEC = Codec.reflect(IDEProject::class.java)
+        const val VERSION = "1.9.1"
+        private val REFLECTED_CODEC = Codec.reflect<IDEProject> {
+            field(IDEProject::modules, IDEModule.CODEC.listOf())
+            field(IDEProject::tasks, IDETask.CODEC.listOf())
+            field(IDEProject::scriptFiles, Codec.STRING.listOf())
+        }
         @JvmField
-        val CODEC = VersionedCodec.of(
-            codec = Codec.STRING,
+        val CODEC = Codec.versioned(
             versionGetter = { VERSION },
-            codecFunction = { version ->
+            dataCodec = { version ->
                 if (version == VERSION) {
                     REFLECTED_CODEC
                 } else {
                     throw DataReadException("Unsupported IDE data version '$version', expected '$VERSION'")
                 }
-            },
-            fallback = VERSION
+            }
         )
     }
 }

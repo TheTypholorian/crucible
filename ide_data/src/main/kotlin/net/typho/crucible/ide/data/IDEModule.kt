@@ -1,12 +1,13 @@
 package net.typho.crucible.ide.data
 
 import net.typho.data_util.codec.Codec
+import java.nio.file.Path
 
 data class IDEModule(
     @JvmField
     val name: String,
     @JvmField
-    val path: String,
+    val path: Path,
     @JvmField
     val roots: List<IDEContentRoot>,
     @JvmField
@@ -14,6 +15,10 @@ data class IDEModule(
 ) {
     companion object {
         @JvmField
-        val CODEC = Codec.reflect(IDEModule::class.java)
+        val CODEC = Codec.reflect<IDEModule> {
+            field(IDEModule::path, Codec.PATH)
+            field(IDEModule::roots, IDEContentRoot.CODEC.listOf())
+            field(IDEModule::dependencies, IDEDependency.CODEC.listOf())
+        }
     }
 }

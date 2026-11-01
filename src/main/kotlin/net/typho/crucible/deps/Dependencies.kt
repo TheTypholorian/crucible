@@ -1,44 +1,32 @@
 package net.typho.crucible.deps
 
-import net.typho.crucible.error.DependencyNotFoundException
+import net.typho.crucible.Crucible
 import net.typho.crucible.ide.data.IDEDependency
 import net.typho.crucible.ide.data.DependencyPathType
-import net.typho.crucible.wrapper.DependencyName
-import kotlin.io.path.Path
+import net.typho.maven_util.ArtifactCoords
 
 class Dependencies(
-    private val repositories: Repositories,
-    private val fallbackDependencyVersions: Map<String, String>
+    private val repositories: Repositories
 ) : ArrayList<IDEDependency>() {
-    fun getPaths(type: DependencyPathType) = flatMap { it.paths.filter { it.type == type }.map { Path(it.path) } }
+    fun getPaths(type: DependencyPathType) = flatMap { it.paths.filter { it.type == type }.map { it.path } }
 
-    fun applyFallbackVersion(name: DependencyName): DependencyName {
-        return if (name.version == null) {
-            fallbackDependencyVersions[name.toString(withVersion = false)]?.let { name.copy(version = it) }
-                ?: fallbackDependencyVersions[name.toString(withVersion = false, withClassifier = false)]?.let { name.copy(version = it) }
-                ?: fallbackDependencyVersions[name.toString(withVersion = false, withClassifier = false, withArtifact = false)]?.let { name.copy(version = it) }
-                ?: name
-        } else {
-            name
-        }
-    }
-
-    fun add(name: DependencyName): Boolean {
-        val name = applyFallbackVersion(name)
-        return add(repositories.findIDE(name) ?: throw DependencyNotFoundException("Cannot find dependency '${name.coordinates}', searched in repositories:\n\t${repositories.joinToString(separator = "\n\t")}"))
+    fun add(name: ArtifactCoords): Boolean {
+        return add(repositories.findIDE(name).orThrow().artifact)
     }
 
     fun add(
-        group: String,
-        artifact: String,
-        version: String
-    ) = add(DependencyName("$group:$artifact:$version"))
+        groupId: String,
+        artifactId: String,
+        version: String? = null
+    ) = add(ArtifactCoords(
+        groupId,
+        artifactId,
+        version ?: Crucible.fallbackDependencyVersions["$groupId:$artifactId"] ?: throw NullPointerException("No version specified for $groupId:$artifactId, and no fallback version specified in ${Crucible.dependencyVersionsFile()}")
+    ))
 
-    fun add(coordinates: String) = add(DependencyName(coordinates))
-
-    fun kotlin(module: String, version: String? = null) = add(DependencyName(
+    fun kotlin(module: String, version: String? = null) = add(
         groupId = "org.jetbrains.kotlin",
         artifactId = "kotlin-$module",
         version = version
-    ))
+    )
 }

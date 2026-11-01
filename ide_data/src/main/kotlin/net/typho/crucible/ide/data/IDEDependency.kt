@@ -6,22 +6,12 @@ data class IDEDependency(
     @JvmField
     val name: String,
     @JvmField
-    val paths: List<Path>
+    val paths: List<IDEDependencyPath>
 ) {
     companion object {
         @JvmField
-        val CODEC = Codec.reflect(IDEDependency::class.java)
-    }
-
-    data class Path(
-        @JvmField
-        val type: DependencyPathType,
-        @JvmField
-        val path: String
-    ) {
-        companion object {
-            @JvmField
-            val CODEC = Codec.reflect(Path::class.java)
+        val CODEC = Codec.reflect<IDEDependency> {
+            field(IDEDependency::paths, IDEDependencyPath.CODEC.listOf())
         }
     }
 }
