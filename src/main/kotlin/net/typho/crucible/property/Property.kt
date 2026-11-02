@@ -40,7 +40,7 @@ open class Property<V>(
     protected open var value0: Value<V>? = null
         set(value) {
             if (finalization == Finalization.FINAL) {
-                throw IllegalStateException("Property has already been read")
+                throw IllegalStateException("Property $container.'$id' has already been read")
             }
 
             field = value

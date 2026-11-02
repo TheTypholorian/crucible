@@ -92,10 +92,27 @@ object CrucibleClassLoader : URLClassLoader(
         synchronized(getClassLoadingLock(name)) {
             findLoadedClass(name)?.let { return it }
 
-            val clazz = when {
-                name.startsWith("net.typho.crucible.wrapper.") || name.startsWith("net.typho.maven_util.") -> parent.loadClass(name)
-                name.startsWith("java.") -> getPlatformClassLoader().loadClass(name)
-                else -> try {
+            val cls = if (
+                name.startsWith("java.") ||
+                name.startsWith("javax.") ||
+                name.startsWith("jdk.") ||
+                name.startsWith("sun.") ||
+                name.startsWith("kotlin.") ||
+                name.startsWith("kotlinx.") ||
+                name.startsWith("net.typho.crucible.wrapper.") ||
+                name.startsWith("net.typho.maven_util.")
+            ) {
+                try {
+                    parent.loadClass(name)
+                } catch (_: ClassNotFoundException) {
+                    try {
+                        findClass(name)
+                    } catch (_: ClassNotFoundException) {
+                        getPlatformClassLoader().loadClass(name)
+                    }
+                }
+            } else {
+                try {
                     findClass(name)
                 } catch (_: ClassNotFoundException) {
                     getPlatformClassLoader().loadClass(name)
@@ -103,10 +120,10 @@ object CrucibleClassLoader : URLClassLoader(
             }
 
             if (resolve) {
-                resolveClass(clazz)
+                resolveClass(cls)
             }
 
-            return clazz
+            return cls
         }
     }
 }

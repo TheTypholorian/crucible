@@ -1,12 +1,12 @@
-import net.typho.crucible.stonecutter.StonecutterDecompiler
+import net.typho.crucible.Crucible
 
 repositories {
     mavenCentral()
     typhoNet()
 }
 
-val module = modules.register(name()) {
-    sourceInputFolder.set(sourceInputFolder())
+val module = modules.register("main") {
+    sourceInputFolder.set(Crucible.sourceInputFolder())
 
     dependencies {
         kotlin("stdlib")

@@ -20,8 +20,10 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.readText
+import kotlin.script.experimental.api.ResultValue
 import kotlin.script.experimental.api.ScriptDiagnostic
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
+import kotlin.script.experimental.api.valueOrNull
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.StringScriptSource
 import kotlin.script.experimental.jvm.baseClassLoader
@@ -121,6 +123,13 @@ object Crucible : PropertyContainer() {
                 ScriptDiagnostic.Severity.ERROR, ScriptDiagnostic.Severity.FATAL -> throw ConfigScriptException(it)
             }
         }
+
+        val returnValue = result.valueOrNull()?.returnValue
+
+        if (returnValue is ResultValue.Error) {
+            throw returnValue.error
+        }
+
         debug("Loading config script $path took ${System.currentTimeMillis() - start} ms")
     }
 

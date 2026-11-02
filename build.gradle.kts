@@ -20,8 +20,9 @@ repositories {
 
 dependencies {
     implementation("net.typho:crucible.ide_data:1.9.1")
-    implementation("net.typho:data_util:2.4.0")
+    compileOnly("net.typho:maven_util:1.5.1")
     implementation("net.typho:misc_util:1.1.0")
+    implementation("net.typho:data_util:2.4.0")
 
     implementation("org.vineflower:vineflower:1.12.0")
     implementation("org.semver4j:semver4j:6.0.0")
@@ -30,8 +31,6 @@ dependencies {
     implementation(kotlin("scripting-jvm"))
     implementation(kotlin("scripting-jvm-host"))
     compileOnly(project("crucible.wrapper"))
-
-    compileOnly("net.typho:maven_util:1.5.1")
 }
 
 kotlin {
