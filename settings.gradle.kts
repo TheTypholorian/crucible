@@ -13,6 +13,8 @@ plugins {
 rootProject.name = "crucible"
 include("ide_data")
 include("wrapper")
+include("installer")
 
 project(":ide_data").name = "crucible.ide_data"
 project(":wrapper").name = "crucible.wrapper"
+project(":installer").name = "crucible.installer"

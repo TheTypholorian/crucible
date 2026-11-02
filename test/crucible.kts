@@ -1,13 +1,9 @@
-import net.typho.crucible.Crucible
-
 repositories {
     mavenCentral()
     typhoNet()
 }
 
 val module = modules.register("main") {
-    sourceInputFolder.set(Crucible.sourceInputFolder())
-
     dependencies {
         kotlin("stdlib")
         add("net.typho", "data_util")

@@ -43,26 +43,27 @@ object Crucible : PropertyContainer() {
         System.getProperty("crucible.config_files")?.split(File.pathSeparatorChar)?.forEach { CrucibleWrapper.loadConfig(Path(it), true) }
     }
 
-    @JvmField
-    val projectRoot = CrucibleWrapper.projectRoot
-    @JvmField
-    val projectCacheFolder = projectRoot.resolve(".crucible")
-
     val group by lazyProperty { System.getProperty("crucible.project_group") ?: "" }.finalizeOnRead()
-    val name by lazyProperty { System.getProperty("crucible.project_name") ?: projectRoot.name }.finalizeOnRead()
+    val name by lazyProperty { System.getProperty("crucible.project_name") ?: CrucibleWrapper.projectRoot.name }.finalizeOnRead()
     val version by lazyProperty { System.getProperty("crucible.project_version") ?: "" }.finalizeOnRead()
 
     val javaVersion by lazyProperty { System.getProperty("crucible.java_version") ?: "21" }.finalizeOnRead()
 
     @JvmField
-    val ideInfoFile = projectCacheFolder.resolve("ide.json")
+    val ideInfoFile = CrucibleWrapper.projectCacheFolder.resolve("ide.json")
     @JvmField
-    val scriptInfoFile = projectCacheFolder.resolve("scripts.bin")
-    val sourceInputFolder by lazyProperty { projectRoot.resolve("src") }.finalizeOnRead()
+    val scriptInfoFile = CrucibleWrapper.projectCacheFolder.resolve("scripts.bin")
+    val sourceInputFolder by lazyProperty { CrucibleWrapper.projectRoot.resolve("src") }.finalizeOnRead()
 
-    val buildFolder by lazyProperty { System.getProperty("crucible.build_folder")?.let { Path(it).absolute() } ?: projectRoot.resolve("build") }.finalizeOnRead()
-    val configScriptFile by lazyProperty { System.getProperty("crucible.config_script")?.let { Path(it).absolute() } ?: projectRoot.resolve("crucible.kts") }.finalizeOnRead()
-    val dependencyVersionsFile by lazyProperty { System.getProperty("crucible.dependency_versions_file")?.let { Path(it).absolute() } ?: projectRoot.resolve("deps.json") }.finalizeOnRead()
+    val buildFolder by lazyProperty { System.getProperty("crucible.build_folder")?.let { Path(it).absolute() } ?: CrucibleWrapper.projectRoot.resolve(
+        "build"
+    ) }.finalizeOnRead()
+    val configScriptFile by lazyProperty { System.getProperty("crucible.config_script")?.let { Path(it).absolute() } ?: CrucibleWrapper.projectRoot.resolve(
+        "crucible.kts"
+    ) }.finalizeOnRead()
+    val dependencyVersionsFile by lazyProperty { System.getProperty("crucible.dependency_versions_file")?.let { Path(it).absolute() } ?: CrucibleWrapper.projectRoot.resolve(
+        "deps.json"
+    ) }.finalizeOnRead()
 
     @JvmField
     val repositories = Repositories()
@@ -135,7 +136,7 @@ object Crucible : PropertyContainer() {
 
     @OptIn(ExperimentalPathApi::class)
     @JvmStatic
-    fun main(args: Array<String>) {
+    fun start(args: Array<String>) {
         val startTime = System.currentTimeMillis()
 
         fallbackDependencyVersions.putAll(loadDependencyVersions(dependencyVersionsFile()))

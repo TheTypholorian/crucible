@@ -2,14 +2,16 @@ package net.typho.crucible.wrapper
 
 import net.typho.crucible.wrapper.log.CrucibleDownloadListener
 import net.typho.crucible.wrapper.log.debug
+import net.typho.crucible.wrapper.log.warn
 import net.typho.maven_util.ArtifactCoords
 import net.typho.maven_util.ArtifactPointer
+import net.typho.maven_util.LookupResult
 import net.typho.maven_util.MavenUtil
-import net.typho.misc_util.KtServiceLoader
 import java.net.URI
 import java.net.URL
 import java.net.URLClassLoader
 import java.nio.file.Path
+import java.util.ServiceLoader
 
 object CrucibleClassLoader : URLClassLoader(
     "crucible",
@@ -19,9 +21,18 @@ object CrucibleClassLoader : URLClassLoader(
     @JvmField
     val sources = mutableListOf<ArtifactPointer<Path>>()
 
-    fun addLibrary(repositories: List<URI>, coords: ArtifactCoords): ArtifactPointer<Path> {
-        debug("Loading library $coords")
+    fun addSources(repositories: List<URI>, coords: ArtifactCoords): LookupResult<ArtifactPointer<Path>> {
+        val pointer = MavenUtil.cachedLookup(
+            coords.copy(classifier = "sources"),
+            CrucibleWrapper.mavenCacheFolder,
+            repositories,
+            CrucibleDownloadListener
+        )
+        pointer.value?.let { sources.add(it) } ?: warn("Sources for $coords not found")
+        return pointer
+    }
 
+    fun addLibrary(repositories: List<URI>, coords: ArtifactCoords): ArtifactPointer<Path> {
         val pointer = MavenUtil.cachedLookup(
             coords,
             CrucibleWrapper.mavenCacheFolder,
@@ -30,38 +41,7 @@ object CrucibleClassLoader : URLClassLoader(
         ).orThrow()
         addURL(pointer.artifact.toUri().toURL())
 
-        MavenUtil.cachedLookup(
-            coords.copy(classifier = "sources"),
-            CrucibleWrapper.mavenCacheFolder,
-            pointer.repository?.let { listOf(it) } ?: repositories,
-            CrucibleDownloadListener
-        ).value?.let { sources.add(it) }
-
-        return pointer
-    }
-
-    fun addLibrary(repositories: List<URI>, coords: ArtifactPointer<ArtifactCoords>): ArtifactPointer<Path> {
-        val pointer = coords.repository?.let {
-            MavenUtil.cachedLookup(
-                coords.artifact,
-                CrucibleWrapper.mavenCacheFolder,
-                listOf(it),
-                CrucibleDownloadListener
-            ).value
-        } ?: MavenUtil.cachedLookup(
-            coords.artifact,
-            CrucibleWrapper.mavenCacheFolder,
-            repositories,
-            CrucibleDownloadListener
-        ).orThrow()
-        addURL(pointer.artifact.toUri().toURL())
-
-        MavenUtil.cachedLookup(
-            coords.artifact.copy(classifier = "sources"),
-            CrucibleWrapper.mavenCacheFolder,
-            pointer.repository?.let { listOf(it) } ?: coords.repository?.let { listOf(it) } ?: repositories,
-            CrucibleDownloadListener
-        ).value?.let { sources.add(it) }
+        addSources(repositories, coords)
 
         return pointer
     }
@@ -72,7 +52,7 @@ object CrucibleClassLoader : URLClassLoader(
         }
     }
 
-    fun load(
+    fun addWithDependencies(
         repositories: List<URI>,
         artifacts: List<ArtifactCoords>
     ): List<ArtifactPointer<Path>> {
@@ -82,9 +62,13 @@ object CrucibleClassLoader : URLClassLoader(
             repositories,
             CrucibleDownloadListener
         ).orThrow()
-        val paths = dependencies.map { addLibrary(repositories, it) }
-        // init static code of all plugins in the classpath
-        KtServiceLoader.load(Plugin::class.java, initStatic = true, loader = this)
+        val paths = dependencies.map { addLibrary(repositories, it.artifact) }
+
+        ServiceLoader.load(Plugin::class.java, this)
+            .stream()
+            .map { it.type() }
+            .forEach { Class.forName(it.name, true, this) }
+
         return paths
     }
 
@@ -92,26 +76,9 @@ object CrucibleClassLoader : URLClassLoader(
         synchronized(getClassLoadingLock(name)) {
             findLoadedClass(name)?.let { return it }
 
-            val cls = if (
-                name.startsWith("java.") ||
-                name.startsWith("javax.") ||
-                name.startsWith("jdk.") ||
-                name.startsWith("sun.") ||
-                name.startsWith("kotlin.") ||
-                name.startsWith("kotlinx.") ||
-                name.startsWith("net.typho.crucible.wrapper.") ||
-                name.startsWith("net.typho.maven_util.")
-            ) {
-                try {
-                    parent.loadClass(name)
-                } catch (_: ClassNotFoundException) {
-                    try {
-                        findClass(name)
-                    } catch (_: ClassNotFoundException) {
-                        getPlatformClassLoader().loadClass(name)
-                    }
-                }
-            } else {
+            val cls = try {
+                parent.loadClass(name)
+            } catch (_: ClassNotFoundException) {
                 try {
                     findClass(name)
                 } catch (_: ClassNotFoundException) {

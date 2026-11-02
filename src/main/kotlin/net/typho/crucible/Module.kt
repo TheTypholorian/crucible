@@ -13,8 +13,8 @@ import net.typho.crucible.source.KotlinSourceType
 import net.typho.crucible.source.ResourcesSourceType
 import net.typho.crucible.source.SourceType
 import net.typho.crucible.task.Task
+import net.typho.crucible.wrapper.CrucibleWrapper
 import net.typho.misc_util.EventGraph
-import kotlin.io.path.absolutePathString
 
 class Module(
     override val id: String
@@ -34,7 +34,7 @@ class Module(
 
     fun toIDE() = IDEModule(
         id,
-        Crucible.projectRoot,//sourceInputFolder().absolutePathString(),
+        CrucibleWrapper.projectRoot,//sourceInputFolder().absolutePathString(),
         sourceTypes.resolve().flatMap { type -> type.event.inputs().map { IDEContentRoot(type.event.type, false, it) } },
         dependencies
     )

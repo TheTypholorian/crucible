@@ -18,6 +18,7 @@ abstract class AbstractProjectConfig {
         val defaultImports = listProperty(
             "net.typho.crucible.*",
             "net.typho.crucible.Crucible.*",
+            "net.typho.crucible.wrapper.CrucibleWrapper.*",
             "net.typho.crucible.deps.*",
             "net.typho.crucible.plugins.*",
             "net.typho.crucible.property.*",
@@ -62,7 +63,7 @@ abstract class AbstractProjectConfig {
                     ?.get(ScriptCollectedData.collectedAnnotations)
                     ?.mapNotNull { anno -> anno.annotation as? Plugins }
                     ?.forEach { anno ->
-                        CrucibleClassLoader.load(anno.repositories.map { URI(it) }, anno.plugins.map { ArtifactCoords(it) }).mapTo(plugins) { it.artifact.toFile() }
+                        CrucibleClassLoader.addWithDependencies(anno.repositories.map { URI(it) }, anno.plugins.map { ArtifactCoords(it) }).mapTo(plugins) { it.artifact.toFile() }
                     }
 
                 return context.compilationConfiguration
