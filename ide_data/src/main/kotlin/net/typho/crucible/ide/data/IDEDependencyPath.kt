@@ -11,8 +11,6 @@ data class IDEDependencyPath(
 ) {
     companion object {
         @JvmField
-        val CODEC = Codec.reflect(IDEDependencyPath::class.java) {
-            field(IDEDependencyPath::path, Codec.PATH)
-        }
+        val CODEC = Codec.reflect<IDEDependencyPath>()
     }
 }

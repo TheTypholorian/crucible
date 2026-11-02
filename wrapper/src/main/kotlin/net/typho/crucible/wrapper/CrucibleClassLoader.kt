@@ -1,5 +1,6 @@
 package net.typho.crucible.wrapper
 
+import net.typho.crucible.wrapper.log.CrucibleDownloadListener
 import net.typho.crucible.wrapper.log.debug
 import net.typho.maven_util.ArtifactCoords
 import net.typho.maven_util.ArtifactPointer
@@ -24,31 +25,42 @@ object CrucibleClassLoader : URLClassLoader(
         val pointer = MavenUtil.cachedLookup(
             coords,
             CrucibleWrapper.mavenCacheFolder,
-            repositories
+            repositories,
+            CrucibleDownloadListener
         ).orThrow()
         addURL(pointer.artifact.toUri().toURL())
 
         MavenUtil.cachedLookup(
             coords.copy(classifier = "sources"),
             CrucibleWrapper.mavenCacheFolder,
-            pointer.repository?.let { listOf(it) } ?: repositories
+            pointer.repository?.let { listOf(it) } ?: repositories,
+            CrucibleDownloadListener
         ).value?.let { sources.add(it) }
 
         return pointer
     }
 
     fun addLibrary(repositories: List<URI>, coords: ArtifactPointer<ArtifactCoords>): ArtifactPointer<Path> {
-        val pointer = MavenUtil.cachedLookup(
+        val pointer = coords.repository?.let {
+            MavenUtil.cachedLookup(
+                coords.artifact,
+                CrucibleWrapper.mavenCacheFolder,
+                listOf(it),
+                CrucibleDownloadListener
+            ).value
+        } ?: MavenUtil.cachedLookup(
             coords.artifact,
             CrucibleWrapper.mavenCacheFolder,
-            coords.repository?.let { listOf(it) } ?: repositories
+            repositories,
+            CrucibleDownloadListener
         ).orThrow()
         addURL(pointer.artifact.toUri().toURL())
 
         MavenUtil.cachedLookup(
             coords.artifact.copy(classifier = "sources"),
             CrucibleWrapper.mavenCacheFolder,
-            pointer.repository?.let { listOf(it) } ?: coords.repository?.let { listOf(it) } ?: repositories
+            pointer.repository?.let { listOf(it) } ?: coords.repository?.let { listOf(it) } ?: repositories,
+            CrucibleDownloadListener
         ).value?.let { sources.add(it) }
 
         return pointer
@@ -64,7 +76,12 @@ object CrucibleClassLoader : URLClassLoader(
         repositories: List<URI>,
         artifacts: List<ArtifactCoords>
     ): List<ArtifactPointer<Path>> {
-        val dependencies = MavenUtil.cachedLookupDependencies(artifacts, CrucibleWrapper.mavenCacheFolder, repositories).orThrow()
+        val dependencies = MavenUtil.cachedLookupDependencies(
+            artifacts,
+            CrucibleWrapper.mavenCacheFolder,
+            repositories,
+            CrucibleDownloadListener
+        ).orThrow()
         val paths = dependencies.map { addLibrary(repositories, it) }
         // init static code of all plugins in the classpath
         KtServiceLoader.load(Plugin::class.java, initStatic = true, loader = this)

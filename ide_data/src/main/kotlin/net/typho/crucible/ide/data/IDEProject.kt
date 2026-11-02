@@ -18,7 +18,6 @@ data class IDEProject(
         private val REFLECTED_CODEC = Codec.reflect<IDEProject> {
             field(IDEProject::modules, IDEModule.CODEC.listOf())
             field(IDEProject::tasks, IDETask.CODEC.listOf())
-            field(IDEProject::scriptFiles, Codec.STRING.listOf())
         }
         @JvmField
         val CODEC = Codec.versioned(

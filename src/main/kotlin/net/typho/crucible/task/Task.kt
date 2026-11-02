@@ -13,7 +13,7 @@ abstract class Task<R> : PropertyContainer(), () -> R {
         )
 
         @JvmStatic
-        fun getTask(id: String): Task<*> = tasks[id] ?: throw NullPointerException("Task '$id' does not exist")
+        fun getTask(id: String): Task<*> = tasks[id] ?: throw NullPointerException("Task '$id' does not exist (tasks: ${tasks.keys})")
 
         @JvmStatic
         @Suppress("UNCHECKED_CAST")

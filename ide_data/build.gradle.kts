@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation("net.typho:data_util:2.3.10")
+    implementation("net.typho:data_util:2.4.0")
 }
 
 kotlin {

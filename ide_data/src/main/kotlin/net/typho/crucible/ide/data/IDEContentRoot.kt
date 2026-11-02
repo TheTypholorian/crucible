@@ -13,8 +13,6 @@ data class IDEContentRoot(
 ) {
     companion object {
         @JvmField
-        val CODEC = Codec.reflect<IDEContentRoot> {
-            field(IDEContentRoot::path, Codec.PATH)
-        }
+        val CODEC = Codec.reflect<IDEContentRoot>()
     }
 }

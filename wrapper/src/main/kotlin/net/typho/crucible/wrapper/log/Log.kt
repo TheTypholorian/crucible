@@ -2,8 +2,12 @@
 package net.typho.crucible.wrapper.log
 
 import net.typho.crucible.wrapper.CrucibleWrapper
+import net.typho.maven_util.ArtifactCoords
+import net.typho.maven_util.DownloadListener
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import java.net.URI
+import java.nio.file.Path
 
 fun Throwable.fullToString(): String {
     val out = ByteArrayOutputStream()
@@ -42,3 +46,13 @@ fun error(msg: Any?) = error(msg.toString())
 fun error(t: Throwable) = error(t.fullToString())
 
 fun error(msg: Any?, t: Throwable) = error(msg.toString() + "\n" + t.fullToString())
+
+object CrucibleDownloadListener : DownloadListener {
+    override fun onDownload(
+        repository: URI?,
+        artifact: ArtifactCoords,
+        to: Path
+    ) {
+        info("Downloading $artifact from $repository")
+    }
+}

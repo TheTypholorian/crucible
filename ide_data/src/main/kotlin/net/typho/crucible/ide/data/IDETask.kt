@@ -12,6 +12,6 @@ data class IDETask(
 ) {
     companion object {
         @JvmField
-        val CODEC = Codec.reflect(IDETask::class.java)
+        val CODEC = Codec.reflect<IDETask>()
     }
 }

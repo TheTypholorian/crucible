@@ -10,7 +10,7 @@ dependencies {
     implementation("net.typho:crucible.ide_data:1.9.1") {
         isTransitive = false
     }
-    implementation("net.typho:data_util:2.3.10") {
+    implementation("net.typho:data_util:2.4.0") {
         isTransitive = false
     }
 

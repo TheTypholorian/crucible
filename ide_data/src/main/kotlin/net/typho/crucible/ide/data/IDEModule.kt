@@ -16,7 +16,6 @@ data class IDEModule(
     companion object {
         @JvmField
         val CODEC = Codec.reflect<IDEModule> {
-            field(IDEModule::path, Codec.PATH)
             field(IDEModule::roots, IDEContentRoot.CODEC.listOf())
             field(IDEModule::dependencies, IDEDependency.CODEC.listOf())
         }
