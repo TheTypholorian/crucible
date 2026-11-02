@@ -1,23 +1,19 @@
-package net.typho.crucible.ide.data
+package net.typho.crucible.ide_data
 
 import net.typho.data_util.codec.Codec
 import net.typho.data_util.error.DataReadException
+import java.nio.file.Path
 
-data class IDEProject(
+data class IDERootData(
     @JvmField
-    val projectName: String,
+    val project: IDEProjectData,
     @JvmField
-    val modules: List<IDEModule>,
-    @JvmField
-    val tasks: List<IDETask>,
-    @JvmField
-    val scriptFiles: List<String>
+    val scriptFiles: List<Path>
 ) {
     companion object {
-        const val VERSION = "1.9.1"
-        private val REFLECTED_CODEC = Codec.reflect<IDEProject> {
-            field(IDEProject::modules, IDEModule.CODEC.listOf())
-            field(IDEProject::tasks, IDETask.CODEC.listOf())
+        const val VERSION = "2.0.0"
+        private val REFLECTED_CODEC = Codec.reflect<IDERootData> {
+            field(IDERootData::project, IDEProjectData.CODEC)
         }
         @JvmField
         val CODEC = Codec.versioned(

@@ -4,8 +4,6 @@ import net.typho.crucible.Crucible
 import net.typho.crucible.Module
 import net.typho.crucible.deps.classpathString
 import net.typho.crucible.error.CompilationException
-import net.typho.crucible.ide.data.DependencyPathType
-import net.typho.crucible.ide.data.SourceSetType
 import net.typho.crucible.wrapper.log.debug
 import net.typho.crucible.wrapper.log.warn
 import net.typho.misc_util.EventGraph

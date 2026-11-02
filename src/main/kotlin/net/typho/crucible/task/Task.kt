@@ -1,6 +1,6 @@
 package net.typho.crucible.task
 
-import net.typho.crucible.ide.RefreshIDETask
+import net.typho.crucible.ide_data.RefreshIDETask
 import net.typho.crucible.property.PropertyContainer
 import net.typho.crucible.wrapper.log.debug
 import net.typho.crucible.wrapper.log.info

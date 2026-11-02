@@ -28,8 +28,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiManager
 import kotlinx.coroutines.runBlocking
-import net.typho.crucible.ide.data.DependencyPathType
-import net.typho.crucible.ide.data.SourceSetType
 import org.jetbrains.kotlin.idea.core.script.k2.ReloadScriptConfigurationService
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.CompletableFuture

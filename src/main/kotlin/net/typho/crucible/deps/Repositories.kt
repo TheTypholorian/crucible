@@ -1,8 +1,5 @@
 package net.typho.crucible.deps
 
-import net.typho.crucible.ide.data.DependencyPathType
-import net.typho.crucible.ide.data.IDEDependency
-import net.typho.crucible.ide.data.IDEDependencyPath
 import net.typho.crucible.wrapper.CrucibleWrapper
 import net.typho.crucible.wrapper.log.CrucibleDownloadListener
 import net.typho.maven_util.ArtifactCoords
@@ -10,7 +7,6 @@ import net.typho.maven_util.ArtifactPointer
 import net.typho.maven_util.LookupResult
 import net.typho.maven_util.MavenUtil
 import java.net.URI
-import kotlin.io.path.absolutePathString
 
 class Repositories : ArrayList<URI>() {
     fun maven(url: URI) = add(url)

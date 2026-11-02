@@ -1,8 +1,6 @@
-package net.typho.crucible.ide
+package net.typho.crucible.ide_data
 
 import net.typho.crucible.Crucible
-import net.typho.crucible.ide.data.IDEProject
-import net.typho.crucible.ide.data.IDETask
 import net.typho.crucible.script.AbstractProjectConfig
 import net.typho.crucible.task.InternalTask
 import net.typho.crucible.task.Task
@@ -19,7 +17,7 @@ object RefreshIDETask : Task<Unit>(), InternalTask {
         get() = "Outputs the ide info (project name, source sets, dependencies, and tasks) to ${Crucible.ideInfoFile}"
 
     override fun run() {
-        val data = IDEProject(
+        val data = IDERootData(
             Crucible.name(),
             Crucible.modules.values.map { it.toIDE() },
             tasks.entries.filter { (name, task) -> task !is InternalTask }
@@ -28,7 +26,7 @@ object RefreshIDETask : Task<Unit>(), InternalTask {
         )
 
         Crucible.ideInfoFile.parent.createDirectories()
-        Crucible.ideInfoFile.writeText(JsonFormat.write(IDEProject.CODEC, data).asString())
+        Crucible.ideInfoFile.writeText(JsonFormat.write(IDERootData.CODEC, data).asString())
 
         Crucible.scriptInfoFile.parent.createDirectories()
         ObjectOutputStream(Crucible.scriptInfoFile.outputStream()).use {

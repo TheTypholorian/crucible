@@ -5,8 +5,6 @@ import net.typho.crucible.Module
 import net.typho.crucible.deps.classpathString
 import net.typho.crucible.error.CompilationException
 import net.typho.crucible.error.ToolNotFoundException
-import net.typho.crucible.ide.data.DependencyPathType
-import net.typho.crucible.ide.data.SourceSetType
 import javax.tools.Diagnostic
 import javax.tools.JavaFileObject
 import javax.tools.ToolProvider

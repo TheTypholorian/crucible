@@ -1,7 +1,6 @@
 package net.typho.crucible.deps
 
 import net.typho.crucible.Module
-import net.typho.crucible.ide.data.DependencyPathType
 import net.typho.crucible.task.Task
 import net.typho.crucible.wrapper.log.info
 import kotlin.io.path.absolutePathString

@@ -23,7 +23,7 @@ import com.intellij.util.Function
 import com.intellij.util.messages.Topic
 import com.intellij.util.xmlb.annotations.OptionTag
 import icons.ExternalSystemIcons
-import net.typho.crucible.ide.data.IDEProject
+import net.typho.crucible.ide.data.CrucibleRootData
 import net.typho.crucible.intellij.task.CrucibleSystemTaskManager
 import net.typho.data_util.SerializedData
 import net.typho.data_util.json.JsonFormat
@@ -33,7 +33,6 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
-import kotlin.io.path.readText
 
 @JvmField
 val SYSTEM_ID = ProjectSystemId("CRUCIBLE", "Crucible")
@@ -184,10 +183,10 @@ class CrucibleSystemManager : ExternalSystemManager<CrucibleSystemManager.Projec
         class State : AbstractExternalSystemLocalSettings.State() {
             @JvmField
             @OptionTag(converter = CrucibleIDEDataConverter::class)
-            var info: IDEProject? = null
+            var info: CrucibleRootData? = null
 
-            fun loadInfo(projectPath: Path): IDEProject {
-                val info = JsonFormat.read(IDEProject.CODEC, SerializedData(projectPath.resolve(".crucible").resolve("ide.json")))
+            fun loadInfo(projectPath: Path): CrucibleRootData {
+                val info = JsonFormat.read(CrucibleRootData.CODEC, SerializedData(projectPath.resolve(".crucible").resolve("ide.json")))
                 this.info = info
                 return info
             }

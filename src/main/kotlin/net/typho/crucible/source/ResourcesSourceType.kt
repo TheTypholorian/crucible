@@ -1,7 +1,6 @@
 package net.typho.crucible.source
 
 import net.typho.crucible.Module
-import net.typho.crucible.ide.data.SourceSetType
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.copyToRecursively
 import kotlin.io.path.createDirectories

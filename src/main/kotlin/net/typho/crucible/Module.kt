@@ -1,9 +1,6 @@
 package net.typho.crucible
 
 import net.typho.crucible.deps.Dependencies
-import net.typho.crucible.ide.data.DependencyPathType
-import net.typho.crucible.ide.data.IDEContentRoot
-import net.typho.crucible.ide.data.IDEModule
 import net.typho.crucible.property.PropertyContainer
 import net.typho.crucible.source.CompileTask
 import net.typho.crucible.source.JarTask

@@ -1,8 +1,6 @@
 package net.typho.crucible.deps
 
 import net.typho.crucible.Crucible
-import net.typho.crucible.ide.data.IDEDependency
-import net.typho.crucible.ide.data.DependencyPathType
 import net.typho.maven_util.ArtifactCoords
 
 class Dependencies(

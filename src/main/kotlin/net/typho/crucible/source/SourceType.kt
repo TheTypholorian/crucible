@@ -2,7 +2,6 @@ package net.typho.crucible.source
 
 import net.typho.crucible.Module
 import net.typho.crucible.Named
-import net.typho.crucible.ide.data.SourceSetType
 import net.typho.crucible.property.PropertyContainer
 import net.typho.crucible.wrapper.log.debug
 import net.typho.misc_util.EventGraph

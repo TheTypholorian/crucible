@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "net.typho"
-version = "1.9.1"
+version = "2.0.0"
 
 repositories {
     mavenCentral()
