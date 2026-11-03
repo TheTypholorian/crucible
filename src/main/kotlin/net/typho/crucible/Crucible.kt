@@ -1,6 +1,5 @@
 package net.typho.crucible
 
-import net.typho.crucible.deps.Repositories
 import net.typho.crucible.error.CompilationException
 import net.typho.crucible.error.ConfigScriptException
 import net.typho.crucible.property.PropertyContainer
@@ -20,6 +19,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.readText
 import kotlin.script.experimental.api.ResultValue
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptDiagnostic
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
 import kotlin.script.experimental.api.valueOrNull
@@ -80,19 +80,21 @@ object Crucible : PropertyContainer() {
         }
     }
 
-    internal val loadedScripts = mutableSetOf<Path>()
+    internal val loadedScripts = mutableMapOf<Path, ScriptCompilationConfiguration>()
 
+    @JvmOverloads
     @JvmStatic
-    fun loadConfigScript(path: Path) {
+    fun loadScript(path: Path, config: ScriptCompilationConfiguration = AbstractProjectConfig.createCompilationConfig()) {
         if (path.exists()) {
-            loadConfigScript(path.readText(), path)
+            loadScript(path.readText(), path, config)
         }
     }
 
+    @JvmOverloads
     @JvmStatic
-    fun loadConfigScript(code: String, path: Path) {
+    fun loadScript(code: String, path: Path, config: ScriptCompilationConfiguration = AbstractProjectConfig.createCompilationConfig()) {
         val start = System.currentTimeMillis()
-        loadedScripts.add(path)
+        loadedScripts[path] = config
         val result = try {
             BasicJvmScriptingHost(ScriptingHostConfiguration {
                 jvm {
@@ -100,7 +102,7 @@ object Crucible : PropertyContainer() {
                 }
             }).eval(
                 StringScriptSource(code, path.toString()),
-                AbstractProjectConfig.createCompilationConfig(),
+                config,
                 ScriptEvaluationConfiguration {
                     jvm {
                         baseClassLoader.put(CrucibleClassLoader)
@@ -134,7 +136,7 @@ object Crucible : PropertyContainer() {
         val startTime = System.currentTimeMillis()
 
         fallbackDependencyVersions.putAll(loadDependencyVersions(dependencyVersionsFile()))
-        loadConfigScript(configScriptFile())
+        loadScript(configScriptFile())
 
         info("> Finished config phase in ${System.currentTimeMillis() - startTime} ms")
 

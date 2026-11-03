@@ -7,7 +7,9 @@ import net.typho.crucible.wrapper.log.error
 import net.typho.maven_util.ArtifactCoords
 import java.io.File
 import java.net.URI
+import java.nio.file.Path
 import kotlin.collections.mapTo
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.toPath
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.jvm.*
@@ -32,7 +34,7 @@ abstract class AbstractProjectConfig {
         fun createCompilationConfig(includeSources: Boolean = false) = ScriptCompilationConfiguration {
             displayName("Crucible Project Config")
             fileExtension("kts")
-            filePathPattern("(.*/)?([^/]*\\.)?crucible\\.kts")
+            filePathPattern("^.*crucible\\.kts$")
             baseClass(KotlinType(AbstractProjectConfig::class))
             defaultImports.append(AbstractProjectConfig.defaultImports())
 
@@ -42,8 +44,6 @@ abstract class AbstractProjectConfig {
             }
 
             ide {
-                acceptedLocations(ScriptAcceptedLocation.Project)
-
                 if (includeSources) {
                     dependenciesSources.append(JvmDependency(CrucibleClassLoader.sources.map { it.artifact.toFile() }))
                 }

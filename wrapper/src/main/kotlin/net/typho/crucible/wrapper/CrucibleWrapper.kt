@@ -34,7 +34,7 @@ object CrucibleWrapper {
         }
     }
 
-    const val VERSION = "1.2.0"
+    const val VERSION = "1.2.1"
 
     @JvmField
     val projectRoot = System.getProperty("crucible.project_root")?.let { Path(it) } ?: Path(System.getProperty("user.dir"))
@@ -66,13 +66,13 @@ object CrucibleWrapper {
 
         // the inner jar should be very small so this is fine
         val innerJar = ClassLoader.getSystemResource("crucible/crucible.jar") ?: throw IllegalStateException("crucible.jar not found inside wrapper jar, this should never happen")
-        val tempFile = createTempFile("crucible")
+        val extractedJar = projectCacheFolder.resolve("crucible.jar")
         innerJar.openStream().use { input ->
-            tempFile.outputStream().use { output ->
+            extractedJar.outputStream().use { output ->
                 input.copyTo(output)
             }
         }
-        loader.addURL(tempFile.toUri().toURL())
+        loader.addURL(extractedJar.toUri().toURL())
 
         val repositories = listOf(MavenUtil.MAVEN_CENTRAL, MavenUtil.TYPHO_NET)
         loader.addWithDependencies(

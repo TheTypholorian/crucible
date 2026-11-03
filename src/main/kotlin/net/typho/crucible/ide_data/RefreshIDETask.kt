@@ -33,7 +33,7 @@ object RefreshIDETask : Task<Unit>(), InternalTask {
                         group = task.group
                     ) }
             ),
-            Crucible.loadedScripts.toList()
+            Crucible.loadedScripts.keys.toList()
         )
 
         Crucible.ideInfoFile.parent.createDirectories()
@@ -41,7 +41,7 @@ object RefreshIDETask : Task<Unit>(), InternalTask {
 
         Crucible.scriptInfoFile.parent.createDirectories()
         ObjectOutputStream(Crucible.scriptInfoFile.outputStream()).use {
-            it.writeObject(listOf(AbstractProjectConfig.createCompilationConfig(true)))
+            it.writeObject(Crucible.loadedScripts.values.toList())
         }
     }
 }

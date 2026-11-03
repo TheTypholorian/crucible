@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
@@ -34,11 +35,17 @@ public class CrucibleInstaller {
         var cacheDir = Paths.get(System.getProperty("user.home"), ".crucible", "caches", "installer");
         Files.createDirectories(cacheDir);
 
-        var jarFile = cacheDir.resolve(HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(url.toString().getBytes())) + ".jar");
+        Path jarFile;
 
-        if (!Files.exists(jarFile)) {
-            try (InputStream in = url.openStream()) {
-                Files.copy(in, jarFile, StandardCopyOption.REPLACE_EXISTING);
+        if (url.getProtocol().equals("file")) {
+            jarFile = Paths.get(url.toURI());
+        } else {
+            jarFile = cacheDir.resolve(HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(url.toString().getBytes())) + ".jar");
+
+            if (!Files.exists(jarFile)) {
+                try (InputStream in = url.openStream()) {
+                    Files.copy(in, jarFile, StandardCopyOption.REPLACE_EXISTING);
+                }
             }
         }
 
@@ -48,9 +55,11 @@ public class CrucibleInstaller {
         arguments.add(jarFile.toString());
         arguments.addAll(Arrays.asList(args));
 
-        new ProcessBuilder(arguments)
-                .inheritIO()
-                .start()
-                .waitFor();
+        System.exit(
+                new ProcessBuilder(arguments)
+                        .inheritIO()
+                        .start()
+                        .waitFor()
+        );
     }
 }
