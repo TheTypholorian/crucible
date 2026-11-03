@@ -63,8 +63,8 @@ abstract class Task<R> : PropertyContainer(), () -> R {
 
     open val group: String
         get() = "other"
-    open val description: String
-        get() = ""
+    open val description: String?
+        get() = null
 
     override operator fun invoke(): R {
         val start = System.currentTimeMillis()

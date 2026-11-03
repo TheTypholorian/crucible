@@ -16,7 +16,6 @@ import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
 import kotlin.io.path.absolute
-import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.readText
@@ -66,9 +65,7 @@ object Crucible : PropertyContainer() {
     ) }.finalizeOnRead()
 
     @JvmField
-    val repositories = Repositories()
-    @JvmField
-    val modules = NamedContainer { Module(it) }
+    val modules = NamedContainer<Module, SimpleModule> { SimpleModule(it) }
 
     @JvmField
     val fallbackDependencyVersions = mutableMapOf<String, String>()
@@ -83,20 +80,17 @@ object Crucible : PropertyContainer() {
         }
     }
 
-    internal val loadedScripts = mutableSetOf<String>()
-
-    @JvmStatic
-    fun repositories(action: Repositories.() -> Unit) = action(repositories)
+    internal val loadedScripts = mutableSetOf<Path>()
 
     @JvmStatic
     fun loadConfigScript(path: Path) {
         if (path.exists()) {
-            loadConfigScript(path.readText(), path.absolutePathString())
+            loadConfigScript(path.readText(), path)
         }
     }
 
     @JvmStatic
-    fun loadConfigScript(code: String, path: String) {
+    fun loadConfigScript(code: String, path: Path) {
         val start = System.currentTimeMillis()
         loadedScripts.add(path)
         val result = try {
@@ -105,7 +99,7 @@ object Crucible : PropertyContainer() {
                     baseClassLoader.put(CrucibleClassLoader)
                 }
             }).eval(
-                StringScriptSource(code, path),
+                StringScriptSource(code, path.toString()),
                 AbstractProjectConfig.createCompilationConfig(),
                 ScriptEvaluationConfiguration {
                     jvm {

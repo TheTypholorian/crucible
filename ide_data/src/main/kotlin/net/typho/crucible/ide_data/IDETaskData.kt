@@ -7,25 +7,25 @@ data class IDETaskData(
     @JvmField
     val name: String,
     @JvmField
-    val description: String?,
+    val description: String? = null,
     @JvmField
-    val linkedExternalProjectPath: Path?,
+    val linkedExternalProjectPath: Path,
     @JvmField
-    val group: String?,
+    val group: String? = null,
     @JvmField
-    val type: String?,
+    val type: String? = null,
     @JvmField
-    val inherited: Boolean?,
+    val inherited: Boolean? = null,
     @JvmField
-    val isJvm: Boolean?,
+    val isJvm: Boolean? = null,
     @JvmField
-    val isTest: Boolean?,
+    val isTest: Boolean? = null,
     @JvmField
-    val isJvmTest: Boolean?,
+    val isJvmTest: Boolean? = null,
 
-    override val children: List<IDEDataNode>
+    override val children: List<IDEDataNode> = listOf()
 ) : IDEDataNode {
-    override val dataType: IDEDataNode.Type
+    override val nodeType: IDEDataNode.Type
         get() = IDEDataNode.Type.TASK
 
     companion object {

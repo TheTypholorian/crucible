@@ -7,10 +7,10 @@ data class IDEContentRootData(
     @JvmField
     val data: Map<IDESourceType, List<SourceRoot>>,
     @JvmField
-    val rootPath: String,
-    override val children: List<IDEDataNode>
+    val rootPath: Path,
+    override val children: List<IDEDataNode> = listOf()
 ) : IDEDataNode {
-    override val dataType: IDEDataNode.Type
+    override val nodeType: IDEDataNode.Type
         get() = IDEDataNode.Type.CONTENT_ROOT
 
     companion object {
@@ -29,7 +29,7 @@ data class IDEContentRootData(
         @JvmField
         val path: Path,
         @JvmField
-        val packagePrefix: String
+        val packagePrefix: String? = null
     ) {
         companion object {
             @JvmField

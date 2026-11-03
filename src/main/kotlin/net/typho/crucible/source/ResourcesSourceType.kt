@@ -1,6 +1,7 @@
 package net.typho.crucible.source
 
-import net.typho.crucible.Module
+import net.typho.crucible.SimpleModule
+import net.typho.crucible.ide_data.IDESourceType
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.copyToRecursively
 import kotlin.io.path.createDirectories
@@ -8,10 +9,10 @@ import kotlin.io.path.deleteRecursively
 import kotlin.io.path.exists
 
 open class ResourcesSourceType(
-    module: Module
+    module: SimpleModule
 ) : SourceType(module) {
     override val id = "resources"
-    override val type = SourceSetType.RESOURCES
+    override val type: IDESourceType = IDESourceType.RESOURCE
 
     @OptIn(ExperimentalPathApi::class)
     override fun compile(all: List<SourceType>, previous: List<SourceType>) {

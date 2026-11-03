@@ -1,12 +1,14 @@
 package net.typho.crucible.deps
 
 import net.typho.crucible.Crucible
+import net.typho.crucible.ide_data.IDELibraryData
+import net.typho.crucible.ide_data.IDELibraryPathType
 import net.typho.maven_util.ArtifactCoords
 
 class Dependencies(
     private val repositories: Repositories
-) : ArrayList<IDEDependency>() {
-    fun getPaths(type: DependencyPathType) = flatMap { it.paths.filter { it.type == type }.map { it.path } }
+) : ArrayList<IDELibraryData>() {
+    fun getPaths(type: IDELibraryPathType) = flatMap { it.paths[type] ?: listOf() }
 
     fun add(name: ArtifactCoords): Boolean {
         return add(repositories.findIDE(name).orThrow().artifact)

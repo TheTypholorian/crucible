@@ -11,7 +11,7 @@ data class IDERootData(
     val scriptFiles: List<Path>
 ) {
     companion object {
-        const val VERSION = "2.0.0"
+        const val VERSION = "2.1.1"
         private val REFLECTED_CODEC = Codec.reflect<IDERootData> {
             field(IDERootData::project, IDEProjectData.CODEC)
         }

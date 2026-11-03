@@ -1,7 +1,9 @@
 package net.typho.crucible.source
 
 import net.typho.crucible.Module
+import net.typho.crucible.SimpleModule
 import net.typho.crucible.Named
+import net.typho.crucible.ide_data.IDESourceType
 import net.typho.crucible.property.PropertyContainer
 import net.typho.crucible.wrapper.log.debug
 import net.typho.misc_util.EventGraph
@@ -13,7 +15,7 @@ abstract class SourceType(
     val module: Module
 ) : PropertyContainer(), EventGraph.SelfAware<String>, Named {
     abstract override val id: String
-    abstract val type: SourceSetType
+    abstract val type: IDESourceType
     val inputs by lazyListProperty<Path> { listOf(module.sourceInputFolder().resolve(id)) }
     val output by lazyProperty<Path> { module.sourceOutputFolder().resolve(id) }
 

@@ -9,11 +9,11 @@ data class IDETestData(
     @JvmField
     val testTaskName: String,
     @JvmField
-    val sourceFolders: List<Path>,
+    val sourceFolders: List<Path> = listOf(),
 
-    override val children: List<IDEDataNode>
+    override val children: List<IDEDataNode> = listOf()
 ) : IDEDataNode {
-    override val dataType: IDEDataNode.Type
+    override val nodeType: IDEDataNode.Type
         get() = IDEDataNode.Type.TEST
 
     companion object {

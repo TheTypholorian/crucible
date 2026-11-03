@@ -74,7 +74,7 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
 
         runBlocking {
             for (path in info.scriptFiles) {
-                val file = LocalFileSystem.getInstance().findFileByPath(path)
+                val file = LocalFileSystem.getInstance().findFileByPath(path.toString())
 
                 if (file == null) {
                     System.err.println("Supposed script file '$path' does not exist, skipping reload")
@@ -94,78 +94,8 @@ class CrucibleProjectResolver : ExternalSystemProjectResolver<CrucibleSystemMana
             }
         }
 
-        return DataNode(
-            ProjectKeys.PROJECT,
-            ProjectData(
-                SYSTEM_ID,
-                info.projectName,
-                projectPath.resolve(Project.DIRECTORY_STORE_FOLDER).toString(),
-                projectPath.toString()
-            ),
-            null
-        ).also { projectNode ->
-            for (module in info.modules) {
-                projectNode.createChild(
-                    ProjectKeys.MODULE,
-                    ModuleData(
-                        module.name,
-                        SYSTEM_ID,
-                        GeneralModuleType.TYPE_ID,
-                        module.name,
-                        module.path.absolutePathString(),
-                        module.path.absolutePathString()
-                    )
-                ).also { moduleNode ->
-                    for (set in module.roots) {
-                        moduleNode.createChild(
-                            ProjectKeys.CONTENT_ROOT,
-                            ContentRootData(SYSTEM_ID, set.path.absolutePathString()).also { sourceSetData ->
-                                sourceSetData.storePath(when (set.type) {
-                                    SourceSetType.CODE -> if (set.generated) ExternalSystemSourceType.SOURCE_GENERATED else ExternalSystemSourceType.SOURCE
-                                    SourceSetType.RESOURCES -> if (set.generated) ExternalSystemSourceType.RESOURCE_GENERATED else ExternalSystemSourceType.RESOURCE
-                                }, set.path.absolutePathString())
-                            }
-                        )
-                    }
-
-                    for (dep in module.dependencies) {
-                        moduleNode.createChild(
-                            ProjectKeys.LIBRARY_DEPENDENCY,
-                            LibraryDependencyData(
-                                moduleNode.data,
-                                LibraryData(
-                                    SYSTEM_ID,
-                                    dep.name
-                                ).also { dependencyData ->
-                                    for (path in dep.paths) {
-                                        dependencyData.addPath(when (path.type) {
-                                            DependencyPathType.BINARY -> LibraryPathType.BINARY
-                                            DependencyPathType.SOURCE -> LibraryPathType.SOURCE
-                                            DependencyPathType.DOC -> LibraryPathType.DOC
-                                        }, path.path.absolutePathString())
-                                    }
-                                },
-                                LibraryLevel.MODULE
-                            )
-                        )
-                    }
-                }
-            }
-
-            for (task in info.tasks) {
-                projectNode.createChild(
-                    ProjectKeys.TASK,
-                    TaskData(
-                        SYSTEM_ID,
-                        task.id,
-                        projectPath.toString(),
-                        task.description
-                    ).also { taskData ->
-                        taskData.group = task.group
-                    }
-                )
-            }
-        }
+        @Suppress("UNCHECKED_CAST")
+        return info.project.toIntellij() as DataNode<ProjectData>
     }
 
     override fun cancelTask(

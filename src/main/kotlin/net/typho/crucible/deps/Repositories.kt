@@ -1,5 +1,7 @@
 package net.typho.crucible.deps
 
+import net.typho.crucible.ide_data.IDELibraryData
+import net.typho.crucible.ide_data.IDELibraryPathType
 import net.typho.crucible.wrapper.CrucibleWrapper
 import net.typho.crucible.wrapper.log.CrucibleDownloadListener
 import net.typho.maven_util.ArtifactCoords
@@ -17,7 +19,7 @@ class Repositories : ArrayList<URI>() {
 
     fun typhoNet() = maven(MavenUtil.TYPHO_NET)
 
-    fun findIDE(coords: ArtifactCoords): LookupResult<ArtifactPointer<IDEDependency>> {
+    fun findIDE(coords: ArtifactCoords): LookupResult<ArtifactPointer<IDELibraryData>> {
         return MavenUtil.cachedLookup(
             coords,
             CrucibleWrapper.mavenCacheFolder,
@@ -33,13 +35,16 @@ class Repositories : ArrayList<URI>() {
 
             ArtifactPointer(
                 main.repository,
-                IDEDependency(coords.toString(), buildList {
-                    add(IDEDependencyPath(DependencyPathType.BINARY, main.artifact))
-
-                    if (sources != null) {
-                        add(IDEDependencyPath(DependencyPathType.SOURCE, sources))
-                    }
-                })
+                IDELibraryData(
+                    externalName = coords.toString(),
+                    paths = mapOf(
+                        IDELibraryPathType.BINARY to listOf(main.artifact),
+                        IDELibraryPathType.SOURCE to (sources?.let { listOf(it) } ?: listOf())
+                    ),
+                    groupId = coords.groupId,
+                    artifactId = coords.artifactId,
+                    version = coords.version
+                )
             )
         }
     }

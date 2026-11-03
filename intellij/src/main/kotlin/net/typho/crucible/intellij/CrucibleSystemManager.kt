@@ -23,7 +23,7 @@ import com.intellij.util.Function
 import com.intellij.util.messages.Topic
 import com.intellij.util.xmlb.annotations.OptionTag
 import icons.ExternalSystemIcons
-import net.typho.crucible.ide.data.CrucibleRootData
+import net.typho.crucible.ide_data.IDERootData
 import net.typho.crucible.intellij.task.CrucibleSystemTaskManager
 import net.typho.data_util.SerializedData
 import net.typho.data_util.json.JsonFormat
@@ -97,16 +97,14 @@ class CrucibleSystemManager : ExternalSystemManager<CrucibleSystemManager.Projec
         val linked = project.getService(SystemSettings::class.java).linkedProjectsSettings
 
         for (settings in linked) {
-            val root = getProjectRoot(settings.externalProjectPath)
-
-            if (changed == root.resolve("crucible.properties")) {
+            if (changed.endsWith("crucible.properties")) {
                 return settings.externalProjectPath
             }
         }
 
         val info = project.getService(LocalSettings::class.java).state?.info ?: return null
 
-        if (info.scriptFiles.none { Path(it) == changed }) {
+        if (info.scriptFiles.none { it == changed }) {
             return null
         }
 
@@ -120,7 +118,8 @@ class CrucibleSystemManager : ExternalSystemManager<CrucibleSystemManager.Projec
 
         return buildList {
             add(getProjectRoot(projectPath).resolve("crucible.properties").toFile())
-            project.getService(LocalSettings::class.java).state?.info?.scriptFiles?.mapTo(this) { File(it) }
+            add(getProjectRoot(projectPath).resolve("installer.crucible.properties").toFile())
+            project.getService(LocalSettings::class.java).state?.info?.scriptFiles?.mapTo(this) { it.toFile() }
         }
     }
 
@@ -183,10 +182,10 @@ class CrucibleSystemManager : ExternalSystemManager<CrucibleSystemManager.Projec
         class State : AbstractExternalSystemLocalSettings.State() {
             @JvmField
             @OptionTag(converter = CrucibleIDEDataConverter::class)
-            var info: CrucibleRootData? = null
+            var info: IDERootData? = null
 
-            fun loadInfo(projectPath: Path): CrucibleRootData {
-                val info = JsonFormat.read(CrucibleRootData.CODEC, SerializedData(projectPath.resolve(".crucible").resolve("ide.json")))
+            fun loadInfo(projectPath: Path): IDERootData {
+                val info = JsonFormat.read(IDERootData.CODEC, SerializedData(projectPath.resolve(".crucible").resolve("ide.json")))
                 this.info = info
                 return info
             }

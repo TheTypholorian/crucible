@@ -15,11 +15,10 @@ sealed interface IDEDataNode {
         LIBRARY_DEPENDENCY(IDELibraryDependencyData.CODEC),
         TASK(IDETaskData.CODEC),
         CONFIGURATION(IDEConfigurationData.CODEC),
-        TEST(IDETestData.CODEC),
-        DEPENDENCIES_GRAPH(IDEDependenciesGraphData.CODEC)
+        TEST(IDETestData.CODEC)
     }
 
-    val dataType: Type
+    val nodeType: Type
     val children: List<IDEDataNode>
 
     companion object {
@@ -27,9 +26,9 @@ sealed interface IDEDataNode {
         @JvmField
         val CODEC = Codec.versioned(
             Codec.enumCodec(Type::class.java),
-            IDEDataNode::dataType,
+            IDEDataNode::nodeType,
             { it.codec as Codec<IDEDataNode> },
-            "type"
+            "nodeType"
         )
     }
 }

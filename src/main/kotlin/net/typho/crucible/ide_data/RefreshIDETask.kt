@@ -4,6 +4,7 @@ import net.typho.crucible.Crucible
 import net.typho.crucible.script.AbstractProjectConfig
 import net.typho.crucible.task.InternalTask
 import net.typho.crucible.task.Task
+import net.typho.crucible.wrapper.CrucibleWrapper
 import net.typho.data_util.json.JsonFormat
 import java.io.ObjectOutputStream
 import kotlin.io.path.createDirectories
@@ -18,10 +19,20 @@ object RefreshIDETask : Task<Unit>(), InternalTask {
 
     override fun run() {
         val data = IDERootData(
-            Crucible.name(),
-            Crucible.modules.values.map { it.toIDE() },
-            tasks.entries.filter { (name, task) -> task !is InternalTask }
-                .map { (name, task) -> IDETask(name, task.group, task.description) },
+            IDEProjectData(
+                externalName = Crucible.name(),
+                ideProjectFileDirectoryPath = CrucibleWrapper.projectRoot.resolve(".idea"),
+                linkedExternalProjectPath = CrucibleWrapper.projectRoot,
+                group = Crucible.group().ifEmpty { null },
+                version = Crucible.version().ifEmpty { null },
+                children = Crucible.modules.values.map { it.toIDE() } + tasks.entries.filter { (name, task) -> task !is InternalTask }
+                    .map { (name, task) -> IDETaskData(
+                        name = name,
+                        description = task.description,
+                        linkedExternalProjectPath = CrucibleWrapper.projectRoot,
+                        group = task.group
+                    ) }
+            ),
             Crucible.loadedScripts.toList()
         )
 

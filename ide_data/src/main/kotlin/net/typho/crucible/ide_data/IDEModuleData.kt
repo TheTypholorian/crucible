@@ -7,14 +7,14 @@ data class IDEModuleData(
     @JvmField
     val externalName: String,
     @JvmField
-    val internalName: String?,
+    val internalName: String? = null,
 
     @JvmField
-    val compileOutputPaths: Map<IDESourceType, Path>,
+    val compileOutputPaths: Map<IDESourceType, Path> = mapOf(),
     @JvmField
-    val externalCompilerOutputPaths: Map<IDESourceType, Path>,
+    val externalCompilerOutputPaths: Map<IDESourceType, Path> = mapOf(),
     @JvmField
-    val properties: Map<String, String>,
+    val properties: Map<String, String> = mapOf(),
     @JvmField
     val id: String,
     @JvmField
@@ -24,22 +24,22 @@ data class IDEModuleData(
     @JvmField
     val moduleFileDirectoryPath: Path,
     @JvmField
-    val group: String?,
+    val group: String? = null,
     @JvmField
-    val version: String?,
+    val version: String? = null,
     @JvmField
-    val description: String?,
+    val description: String? = null,
     @JvmField
-    val artifacts: List<Path>,
+    val artifacts: List<Path> = listOf(),
     @JvmField
-    val ideModuleGroup: List<String>?,
+    val ideModuleGroup: List<String>? = null,
     @JvmField
-    val productionModuleId: String?,
+    val productionModuleId: String? = null,
     @JvmField
-    val moduleNameDeduplicationStrategy: IDEModuleNameDeduplicationStrategy?,
-    override val children: List<IDEDataNode>
+    val moduleNameDeduplicationStrategy: IDEModuleNameDeduplicationStrategy? = null,
+    override val children: List<IDEDataNode> = listOf()
 ) : IDEDataNode {
-    override val dataType: IDEDataNode.Type
+    override val nodeType: IDEDataNode.Type
         get() = IDEDataNode.Type.MODULE
 
     companion object {

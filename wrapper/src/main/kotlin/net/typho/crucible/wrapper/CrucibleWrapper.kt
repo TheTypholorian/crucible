@@ -78,7 +78,7 @@ object CrucibleWrapper {
         loader.addWithDependencies(
             repositories,
             listOf(
-                ArtifactCoords("net.typho", "crucible.ide_data", "1.9.1"),
+                ArtifactCoords("net.typho", "crucible.ide_data", "2.1.1"),
                 ArtifactCoords("net.typho", "misc_util", "1.1.0"),
 
                 ArtifactCoords("org.vineflower", "vineflower", "1.12.0"),

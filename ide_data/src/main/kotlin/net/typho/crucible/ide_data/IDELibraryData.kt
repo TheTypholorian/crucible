@@ -7,22 +7,22 @@ data class IDELibraryData(
     @JvmField
     val externalName: String,
     @JvmField
-    val internalName: String?,
+    val internalName: String? = null,
 
     @JvmField
     val paths: Map<IDELibraryPathType, List<Path>>,
 
     @JvmField
-    val unresolved: Boolean,
+    val unresolved: Boolean? = null,
     @JvmField
-    val groupId: String?,
+    val groupId: String? = null,
     @JvmField
-    val artifactId: String?,
+    val artifactId: String? = null,
     @JvmField
-    val version: String?,
-    override val children: List<IDEDataNode>
+    val version: String? = null,
+    override val children: List<IDEDataNode> = listOf()
 ) : IDEDataNode {
-    override val dataType: IDEDataNode.Type
+    override val nodeType: IDEDataNode.Type
         get() = IDEDataNode.Type.LIBRARY
 
     companion object {

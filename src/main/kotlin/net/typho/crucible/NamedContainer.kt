@@ -3,9 +3,9 @@ package net.typho.crucible
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-open class NamedContainer<V : Named>(
+open class NamedContainer<V : Named, D : V>(
     @JvmField
-    protected val defaultConstructor: (id: String) -> V
+    protected val defaultConstructor: (id: String) -> D
 ) : Map<String, V> {
     @JvmField
     protected var map = mutableMapOf<String, V>()
@@ -38,21 +38,21 @@ open class NamedContainer<V : Named>(
     }
 
     @JvmOverloads
-    fun register(id: String, config: V.() -> Unit = {}) = register(defaultConstructor(id), config)
+    fun register(id: String, config: D.() -> Unit = {}) = register(defaultConstructor(id), config)
 
     open inner class Delegate(
-        protected var config: V.() -> Unit
+        protected var config: D.() -> Unit
     ) {
         operator fun provideDelegate(
             thisRef: Any?,
             property: KProperty<*>
-        ): ReadWriteProperty<Any?, V> {
+        ): ReadWriteProperty<Any?, D> {
             var holder = register(property.name, config)
 
-            return object : ReadWriteProperty<Any?, V> {
+            return object : ReadWriteProperty<Any?, D> {
                 override fun getValue(thisRef: Any?, property: KProperty<*>) = holder
 
-                override fun setValue(thisRef: Any?, property: KProperty<*>, value: V) {
+                override fun setValue(thisRef: Any?, property: KProperty<*>, value: D) {
                     holder = value
                 }
             }
@@ -60,5 +60,5 @@ open class NamedContainer<V : Named>(
     }
 
     @JvmOverloads
-    fun register(config: V.() -> Unit = {}) = Delegate(config)
+    fun register(config: D.() -> Unit = {}) = Delegate(config)
 }

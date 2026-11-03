@@ -1,9 +1,11 @@
 package net.typho.crucible.source
 
 import net.typho.crucible.Crucible
-import net.typho.crucible.Module
+import net.typho.crucible.SimpleModule
 import net.typho.crucible.deps.classpathString
 import net.typho.crucible.error.CompilationException
+import net.typho.crucible.ide_data.IDELibraryPathType
+import net.typho.crucible.ide_data.IDESourceType
 import net.typho.crucible.wrapper.log.debug
 import net.typho.crucible.wrapper.log.warn
 import net.typho.misc_util.EventGraph
@@ -20,10 +22,10 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteRecursively
 
 open class KotlinSourceType(
-    module: Module
+    module: SimpleModule
 ) : SourceType(module) {
     override val id = "kotlin"
-    override val type = SourceSetType.CODE
+    override val type: IDESourceType = IDESourceType.SOURCE
 
     override fun postRegister(event: EventGraph<String, *>.Event) {
         event.before { it.filter { it.event is JavaSourceType } }
@@ -43,7 +45,7 @@ open class KotlinSourceType(
                 .toTypedArray()
             destination = output().absolutePathString()
             jvmTarget = Crucible.javaVersion()
-            classpath = (module.dependencies.getPaths(DependencyPathType.BINARY) + previous.map { it.output() }).classpathString()
+            classpath = (module.getClasspath() + previous.map { it.output() }).classpathString()
             noStdlib = true
         }
         val errors = mutableListOf<String>()

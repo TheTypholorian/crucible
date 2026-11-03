@@ -9,24 +9,26 @@ data class IDEModuleDependencyData(
     @JvmField
     val target: IDEModuleData,
     @JvmField
-    val scope: IDEDependencyScope?,
+    val scope: IDEDependencyScope? = null,
     @JvmField
-    val exported: Boolean?,
+    val exported: Boolean? = null,
     @JvmField
-    val order: Int?,
+    val order: Int? = null,
 
     @JvmField
-    val productionOnTestDependency: Boolean?,
+    val productionOnTestDependency: Boolean? = null,
     @JvmField
-    val moduleDependencyArtifacts: List<Path>,
-    override val children: List<IDEDataNode>
+    val moduleDependencyArtifacts: List<Path> = listOf(),
+    override val children: List<IDEDataNode> = listOf()
 ) : IDEDataNode {
-    override val dataType: IDEDataNode.Type
+    override val nodeType: IDEDataNode.Type
         get() = IDEDataNode.Type.MODULE_DEPENDENCY
 
     companion object {
         @JvmField
         val CODEC = Codec.reflect<IDEModuleDependencyData> {
+            field(IDEModuleDependencyData::ownerModule, IDEModuleData.CODEC)
+            field(IDEModuleDependencyData::target, IDEModuleData.CODEC)
             field(IDEModuleDependencyData::moduleDependencyArtifacts, Codec.PATH.listOf().optional(listOf()))
             field(IDEModuleDependencyData::children, IDEDataNode.CODEC.listOf().optional(listOf()))
         }

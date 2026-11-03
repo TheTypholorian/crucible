@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation("net.typho:crucible.ide_data:1.9.1")
+    implementation("net.typho:crucible.ide_data:2.1.1")
     implementation("net.typho:maven_util:1.5.1")
     implementation("net.typho:misc_util:1.1.0")
     implementation("net.typho:data_util:2.4.0")

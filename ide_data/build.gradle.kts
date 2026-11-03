@@ -1,12 +1,10 @@
-import org.gradle.kotlin.dsl.kotlin
-
 plugins {
     kotlin("jvm")
     id("net.typho.typho_publish")
 }
 
 group = "net.typho"
-version = "2.0.0"
+version = "2.1.1"
 
 repositories {
     mavenCentral()

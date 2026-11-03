@@ -1,15 +1,14 @@
 package net.typho.crucible.ide_data
 
 import net.typho.data_util.codec.Codec
-import java.nio.file.Path
 
 data class IDEConfigurationData(
     @JvmField
     val data: String,
 
-    override val children: List<IDEDataNode>
+    override val children: List<IDEDataNode> = listOf()
 ) : IDEDataNode {
-    override val dataType: IDEDataNode.Type
+    override val nodeType: IDEDataNode.Type
         get() = IDEDataNode.Type.CONFIGURATION
 
     companion object {

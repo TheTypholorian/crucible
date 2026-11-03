@@ -7,23 +7,23 @@ data class IDEProjectData(
     @JvmField
     val externalName: String,
     @JvmField
-    val internalName: String?,
+    val internalName: String? = null,
 
     @JvmField
     val ideProjectFileDirectoryPath: Path,
     @JvmField
     val linkedExternalProjectPath: Path,
     @JvmField
-    val ideGrouping: String?,
+    val ideGrouping: String? = null,
     @JvmField
-    val group: String?,
+    val group: String? = null,
     @JvmField
-    val version: String?,
+    val version: String? = null,
     @JvmField
-    val description: String?,
-    override val children: List<IDEDataNode>
+    val description: String? = null,
+    override val children: List<IDEDataNode> = listOf()
 ) : IDEDataNode {
-    override val dataType: IDEDataNode.Type
+    override val nodeType: IDEDataNode.Type
         get() = IDEDataNode.Type.PROJECT
 
     companion object {

@@ -1,9 +1,9 @@
-repositories {
-    mavenCentral()
-    typhoNet()
-}
-
 val module = modules.register("main") {
+    repositories {
+        mavenCentral()
+        typhoNet()
+    }
+
     dependencies {
         kotlin("stdlib")
         add("net.typho", "data_util")
