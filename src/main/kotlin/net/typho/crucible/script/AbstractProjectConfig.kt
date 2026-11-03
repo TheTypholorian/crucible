@@ -3,6 +3,7 @@ package net.typho.crucible.script
 import net.typho.crucible.plugins.Plugins
 import net.typho.crucible.property.PropertyContainer
 import net.typho.crucible.wrapper.CrucibleClassLoader
+import net.typho.crucible.wrapper.CrucibleWrapper
 import net.typho.crucible.wrapper.log.error
 import net.typho.maven_util.ArtifactCoords
 import java.io.File
@@ -31,7 +32,7 @@ abstract class AbstractProjectConfig {
         ).finalizeOnRead()
 
         @JvmStatic
-        fun createCompilationConfig(includeSources: Boolean = false) = ScriptCompilationConfiguration {
+        fun createCompilationConfig() = ScriptCompilationConfiguration {
             displayName("Crucible Project Config")
             fileExtension("kts")
             filePathPattern("^.*crucible\\.kts$")
@@ -41,12 +42,11 @@ abstract class AbstractProjectConfig {
             jvm {
                 jvmTarget("21")
                 dependencies.append(JvmDependency(CrucibleClassLoader.urLs.map { it.toURI().toPath().toFile() }))
+                CrucibleWrapper::class.java.protectionDomain.codeSource?.location?.let { dependencies.append(JvmDependency(it.toURI().toPath().toFile())) }
             }
 
             ide {
-                if (includeSources) {
-                    dependenciesSources.append(JvmDependency(CrucibleClassLoader.sources.map { it.artifact.toFile() }))
-                }
+                dependenciesSources.append(JvmDependency(CrucibleClassLoader.sources.map { it.artifact.toFile() }))
             }
 
             refineConfiguration {
