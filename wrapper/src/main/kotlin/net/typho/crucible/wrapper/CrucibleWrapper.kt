@@ -34,7 +34,7 @@ object CrucibleWrapper {
         }
     }
 
-    const val VERSION = "1.1.0"
+    const val VERSION = "1.2.0"
 
     @JvmField
     val projectRoot = System.getProperty("crucible.project_root")?.let { Path(it) } ?: Path(System.getProperty("user.dir"))
