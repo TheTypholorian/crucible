@@ -2,8 +2,6 @@ package net.typho.crucible.source
 
 import net.typho.crucible.deps.classpathString
 import net.typho.crucible.error.JavaExecException
-import net.typho.crucible.property.ListProperty
-import net.typho.crucible.property.Property
 import net.typho.crucible.task.Task
 import net.typho.crucible.wrapper.log.debug
 import java.nio.file.Path
@@ -12,10 +10,10 @@ open class JavaExecTask : Task<Unit>() {
     override val group: String
         get() = "run"
 
-    val classpath by listProperty<Path>().finalizeOnRead()
-    val mainClass by property<String>().finalizeOnRead()
-    val javaArgs by listProperty<Pair<String, String>>().finalizeOnRead()
-    val programArgs by listProperty<String>().finalizeOnRead()
+    val classpath by listProperty<Path>().fallback(listOf())
+    val mainClass by property<String>()
+    val javaArgs by listProperty<Pair<String, String>>().fallback(listOf())
+    val programArgs by listProperty<String>().fallback(listOf())
 
     override fun run() {
         val process = ProcessBuilder(buildList {

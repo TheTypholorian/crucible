@@ -7,7 +7,7 @@ open class CompileTask : Task.RunOnce<List<Path>>() {
     override val group: String
         get() = "build"
 
-    val sourceTypes by listProperty<SourceType>().finalizeOnRead()
+    val sourceTypes by listProperty<SourceType>()
 
     override fun run(): List<Path> {
         return sourceTypes().fold(listOf<SourceType>()) { previous, set ->

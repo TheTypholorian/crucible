@@ -9,11 +9,10 @@ import net.typho.crucible.task.Task
 import net.typho.crucible.wrapper.CrucibleClassLoader
 import net.typho.crucible.wrapper.CrucibleWrapper
 import net.typho.crucible.wrapper.log.*
+import net.typho.crucible.wrapper.PropertyManager
 import net.typho.data_util.SerializedData
 import net.typho.data_util.json.JsonFormat
 import java.nio.file.Path
-import kotlin.io.path.Path
-import kotlin.io.path.absolute
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.readText
@@ -30,7 +29,7 @@ import kotlin.script.experimental.jvm.baseClassLoader
 import kotlin.script.experimental.jvm.jvm
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 
-object Crucible : PropertyContainer() {
+object Crucible : PropertyContainer("project") {
     init {
         Thread.currentThread().uncaughtExceptionHandler = { thread, exception ->
             if (exception is CompilationException || exception is ConfigScriptException) {
@@ -41,40 +40,22 @@ object Crucible : PropertyContainer() {
         }
     }
 
-    val group by lazyProperty {
-        System.getProperty("crucible.project_group") ?: ""
-    }.finalizeOnRead()
-    val name by lazyProperty {
-        System.getProperty("crucible.project_name") ?: CrucibleWrapper.projectRoot.name
-    }.finalizeOnRead()
-    val version by lazyProperty {
-        System.getProperty("crucible.project_version") ?: ""
-    }.finalizeOnRead()
+    val group by property<String>().fallback("")
+    val name by property<String>().fallback(CrucibleWrapper.projectRoot.name)
+    val version by property<String>().fallback("")
 
-    val javaVersion by lazyProperty {
-        System.getProperty("crucible.java_version") ?: "21"
-    }.finalizeOnRead()
+    val javaVersion by property<String>().fallback("21")
 
     @JvmField
     val ideInfoFile = CrucibleWrapper.projectCacheFolder.resolve("ide.json")
     @JvmField
     val scriptInfoFile = CrucibleWrapper.projectCacheFolder.resolve("scripts.bin")
-    val sourceInputFolder by lazyProperty {
-        CrucibleWrapper.projectRoot.resolve("src")
-    }.finalizeOnRead()
+    val sourceInputFolder by property<Path>().fallback(CrucibleWrapper.projectRoot.resolve("src"))
 
-    val buildFolder by lazyProperty {
-        System.getProperty("crucible.build_folder")?.let { Path(it).absolute() } ?: CrucibleWrapper.projectRoot.resolve("build")
-    }.finalizeOnRead()
-    val pluginsScriptFile by lazyProperty {
-        System.getProperty("crucible.plugin_script")?.let { Path(it).absolute() } ?: CrucibleWrapper.projectRoot.resolve("plugins.crucible.kts")
-    }.finalizeOnRead()
-    val configScriptFile by lazyProperty {
-        System.getProperty("crucible.config_script")?.let { Path(it).absolute() } ?: CrucibleWrapper.projectRoot.resolve("crucible.kts")
-    }.finalizeOnRead()
-    val dependencyVersionsFile by lazyProperty {
-        System.getProperty("crucible.dependency_versions_file")?.let { Path(it).absolute() } ?: CrucibleWrapper.projectRoot.resolve("deps.json")
-    }.finalizeOnRead()
+    val buildFolder by property<Path>().fallback(CrucibleWrapper.projectRoot.resolve("build"))
+    val pluginsScriptFile by property<Path>().fallback(CrucibleWrapper.projectRoot.resolve("plugins.crucible.kts"))
+    val configScriptFile by property<Path>().fallback(CrucibleWrapper.projectRoot.resolve("crucible.kts"))
+    val dependencyVersionsFile by property<Path>().fallback(CrucibleWrapper.projectRoot.resolve("deps.json"))
 
     @JvmField
     val modules = NamedContainer<Module, SimpleModule> { SimpleModule(it) }
@@ -154,6 +135,7 @@ object Crucible : PropertyContainer() {
         return result
     }
 
+    @Suppress("UNUSED")
     @JvmStatic
     fun start(args: Array<String>) {
         val startTime = System.currentTimeMillis()

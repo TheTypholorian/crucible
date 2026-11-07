@@ -1,17 +1,17 @@
 package net.typho.crucible.property
 
+import net.typho.data_util.codec.Codec
 import java.util.function.Supplier
 import java.util.function.UnaryOperator
 
-open class ListProperty<V>(
+open class ListProperty<V : Any>(
     name: String,
+    codec: Codec<List<V>>?,
     container: PropertyContainer
-) : Property<List<V>>(name, container), MutableCollection<V> {
+) : Property<List<V>>(name, codec, container), MutableCollection<V> {
     override fun transmute(op: UnaryOperator<List<V>>) {
         value0 = value0?.map(op) ?: LazyValue { op.apply(listOf()) }
     }
-
-    override fun finalizeOnRead() = super.finalizeOnRead() as ListProperty<V>
 
     override val size: Int
         get() = get().size

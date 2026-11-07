@@ -19,15 +19,14 @@ object CrucibleWrapper {
         if (path.exists()) {
             val properties = Properties()
             path.inputStream().use { properties.load(it) }
-            val target = System.getProperties()
 
             properties.forEach { (key, value) ->
                 if (overwrite) {
-                    target.put(key, value)?.let { old ->
+                    PropertyManager.properties.put(key.toString(), value.toString())?.let { old ->
                         warn("Property $key was already set to $old but ${path.name} set it to $value")
                     }
                 } else {
-                    target.putIfAbsent(key, value)
+                    PropertyManager.properties.putIfAbsent(key.toString(), value.toString())
                 }
             }
         }
@@ -36,7 +35,7 @@ object CrucibleWrapper {
     const val VERSION = "1.2.3"
 
     @JvmField
-    val projectRoot = System.getProperty("crucible.project_root")?.let { Path(it) } ?: Path(System.getProperty("user.dir"))
+    val projectRoot = PropertyManager.getPath("crucible.project_root") ?: Path(System.getProperty("user.dir"))
     @JvmField
     val projectCacheFolder = projectRoot.resolve(".crucible")
     @JvmField
@@ -47,16 +46,16 @@ object CrucibleWrapper {
     }
 
     @JvmField
-    val globalCacheFolder = System.getProperty("crucible.global_cache_folder")?.let { Path(it) } ?: Path(System.getProperty("user.home"), ".crucible")
+    val globalCacheFolder = PropertyManager.getPath("crucible.global_cache_folder") ?: Path(System.getProperty("user.home"), ".crucible")
 
     init {
         loadProperties(globalCacheFolder.resolve("crucible.properties"), false)
     }
 
     @JvmField
-    val mavenCacheFolder = System.getProperty("crucible.maven_cache_folder")?.let { Path(it) } ?: globalCacheFolder.resolve("caches").resolve("maven")
+    val mavenCacheFolder = PropertyManager.getPath("crucible.maven_cache_folder") ?: globalCacheFolder.resolve("caches").resolve("maven")
     @JvmField
-    var debug = System.getProperty("crucible.debug") == "true" || System.getProperty("intellij.debug.agent") == "true"
+    var debug = PropertyManager["crucible.debug"] == "true" || System.getProperty("intellij.debug.agent") == "true"
 
     @JvmStatic
     fun start(args: Array<String>) {

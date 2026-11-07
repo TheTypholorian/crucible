@@ -1,8 +1,5 @@
 package net.typho.crucible.source
 
-import net.typho.crucible.Crucible
-import net.typho.crucible.property.ListProperty
-import net.typho.crucible.property.Property
 import net.typho.crucible.task.Task
 import java.io.File
 import java.nio.file.Path
@@ -20,8 +17,8 @@ open class JarTask : Task<Unit>() {
     override val group: String
         get() = "build"
 
-    val inputs by listProperty<Path>().finalizeOnRead()
-    val output by property<Path>().finalizeOnRead()
+    val inputs by listProperty<Path>()
+    val output by property<Path>()
 
     override fun run() {
         val output = output()

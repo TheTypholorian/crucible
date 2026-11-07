@@ -1,13 +1,18 @@
 package net.typho.crucible.property
 
+import net.typho.data_util.codec.Codec
+import java.util.function.Supplier
+import kotlin.jvm.java
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-open class PropertyContainer {
+open class PropertyContainer(
+    internal val propertyPath: String? = null
+) {
     var properties: Map<String, Property<*>> = mapOf()
         internal set
 
-    class PropertyDelegate<P : Property<*>>(
+    class PropertyDelegate<V : Any, P : Property<V>>(
         private var supplier: (name: String) -> P
     ) {
         operator fun provideDelegate(
@@ -18,13 +23,23 @@ open class PropertyContainer {
             return ReadOnlyProperty { thisRef, kProperty -> property }
         }
 
-        fun apply(func: P.() -> Unit): PropertyDelegate<P> {
+        fun apply(func: P.() -> Unit): PropertyDelegate<V, P> {
             val old = supplier
             supplier = { name -> old(name).apply(func) }
             return this
         }
 
-        fun finalizeOnRead() = apply { finalizeOnRead() }
+        fun set(value: V) = apply { set(value) }
+
+        fun fallback(value: V?) = apply { fallback(value) }
+
+        fun set(property: Property<out V>) = apply { set(property) }
+
+        fun fallback(property: Property<out V>) = apply { fallback(property) }
+
+        fun setLazy(supplier: Supplier<V?>) = apply { setLazy(supplier) }
+
+        fun fallbackLazy(supplier: Supplier<V?>) = apply { fallbackLazy(supplier) }
     }
 
     open fun getPropertyRef(name: String) = properties[name] ?: throw NullPointerException("Property '$name' does not exist in container '$this'")
@@ -33,35 +48,54 @@ open class PropertyContainer {
 
     open fun setPropertyValue(name: String, value: Any?) = getPropertyRef(name).setCast(value)
 
-    fun <V> property() = PropertyDelegate<Property<V>> { propertyNamed(it) }
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified V : Any> getPropertyCodec() = Codec.getDefaultCodec(V::class.java) as? Codec<V>
 
-    fun <V> property(value: V) = PropertyDelegate<Property<V>> { propertyNamed(it, value) }
+    inline fun <reified V : Any> property() = property(getPropertyCodec<V>())
 
-    fun <V> lazyProperty(value: () -> V) = PropertyDelegate<Property<V>> { lazyPropertyNamed(it, value) }
+    inline fun <reified V : Any> property(value: V) = property(getPropertyCodec<V>(), value)
 
-    fun <V> listProperty() = PropertyDelegate<ListProperty<V>> { listPropertyNamed(it) }
+    inline fun <reified V : Any> lazyProperty(noinline value: () -> V) = lazyProperty(getPropertyCodec<V>(), value)
 
-    fun <V> listProperty(value: List<V>) = PropertyDelegate<ListProperty<V>> { listPropertyNamed(it, value) }
+    inline fun <reified V : Any> listProperty() = listProperty(getPropertyCodec<V>())
 
-    fun <V> listProperty(vararg values: V) = PropertyDelegate<ListProperty<V>> { listPropertyNamed(it, *values) }
+    inline fun <reified V : Any> listProperty(value: List<V>) = listProperty(getPropertyCodec<V>(), value)
 
-    fun <V> lazyListProperty(value: () -> List<V>) = PropertyDelegate<ListProperty<V>> { lazyListPropertyNamed(it, value) }
+    inline fun <reified V : Any> listProperty(vararg values: V) = listProperty<V>(getPropertyCodec<V>(), *values)
 
-    fun <V> lazyListProperty(vararg values: () -> V) = PropertyDelegate<ListProperty<V>> { lazyListPropertyNamed(it, *values) }
+    inline fun <reified V : Any> lazyListProperty(noinline value: () -> List<V>) = lazyListProperty(getPropertyCodec<V>(), value)
 
-    fun <V> propertyNamed(name: String) = Property<V>(name, this)
+    inline fun <reified V : Any> lazyListProperty(vararg values: () -> V) = lazyListProperty(getPropertyCodec<V>(), *values)
 
-    fun <V> propertyNamed(name: String, value: V) = propertyNamed<V>(name).also { it.set(value) }
+    fun <V : Any> property(codec: Codec<V>? = null) = PropertyDelegate<V, Property<V>> { propertyNamed(codec, it) }
 
-    fun <V> lazyPropertyNamed(name: String, value: () -> V) = propertyNamed<V>(name).also { it.setLazy(value) }
+    fun <V : Any> property(codec: Codec<V>? = null, value: V) = PropertyDelegate<V, Property<V>> { propertyNamed(codec, it, value) }
 
-    fun <V> listPropertyNamed(name: String) = ListProperty<V>(name, this)
+    fun <V : Any> lazyProperty(codec: Codec<V>? = null, value: () -> V) = PropertyDelegate<V, Property<V>> { lazyPropertyNamed(codec, it, value) }
 
-    fun <V> listPropertyNamed(name: String, value: List<V>) = listPropertyNamed<V>(name).also { it.set(value) }
+    fun <V : Any> listProperty(codec: Codec<V>? = null) = PropertyDelegate<List<V>, ListProperty<V>> { listPropertyNamed(codec, it) }
 
-    fun <V> listPropertyNamed(name: String, vararg values: V) = listPropertyNamed<V>(name, listOf(*values))
+    fun <V : Any> listProperty(codec: Codec<V>? = null, value: List<V>) = PropertyDelegate<List<V>, ListProperty<V>> { listPropertyNamed(codec, it, value) }
 
-    fun <V> lazyListPropertyNamed(name: String, value: () -> List<V>) = listPropertyNamed<V>(name).also { it.setLazy(value) }
+    fun <V : Any> listProperty(codec: Codec<V>? = null, vararg values: V) = PropertyDelegate<List<V>, ListProperty<V>> { listPropertyNamed(codec, it, *values) }
 
-    fun <V> lazyListPropertyNamed(name: String, vararg values: () -> V) = lazyListPropertyNamed<V>(name) { values.map { it() } }
+    fun <V : Any> lazyListProperty(codec: Codec<V>? = null, value: () -> List<V>) = PropertyDelegate<List<V>, ListProperty<V>> { lazyListPropertyNamed(codec, it, value) }
+
+    fun <V : Any> lazyListProperty(codec: Codec<V>? = null, vararg values: () -> V) = PropertyDelegate<List<V>, ListProperty<V>> { lazyListPropertyNamed(codec, it, *values) }
+
+    private fun <V : Any> propertyNamed(codec: Codec<V>? = null, name: String) = Property(name, codec, this)
+
+    private fun <V : Any> propertyNamed(codec: Codec<V>? = null, name: String, value: V) = Property(name, codec, this).also { it.set(value) }
+
+    private fun <V : Any> lazyPropertyNamed(codec: Codec<V>? = null, name: String, value: () -> V) = Property(name, codec, this).also { it.setLazy(value) }
+
+    private fun <V : Any> listPropertyNamed(codec: Codec<V>? = null, name: String) = ListProperty(name, codec?.listOf(), this)
+
+    private fun <V : Any> listPropertyNamed(codec: Codec<V>? = null, name: String, value: List<V>) = ListProperty(name, codec?.listOf(), this).also { it.set(value) }
+
+    private fun <V : Any> listPropertyNamed(codec: Codec<V>? = null, name: String, vararg values: V) = listPropertyNamed(codec, name, listOf(*values))
+
+    private fun <V : Any> lazyListPropertyNamed(codec: Codec<V>? = null, name: String, value: () -> List<V>) = ListProperty(name, codec?.listOf(), this).also { it.setLazy(value) }
+
+    private fun <V : Any> lazyListPropertyNamed(codec: Codec<V>? = null, name: String, vararg values: () -> V) = lazyListPropertyNamed(codec, name) { values.map { it() } }
 }

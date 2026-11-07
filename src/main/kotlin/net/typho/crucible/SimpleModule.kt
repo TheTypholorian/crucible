@@ -7,7 +7,6 @@ import net.typho.crucible.ide_data.IDELibraryDependencyData
 import net.typho.crucible.ide_data.IDELibraryLevel
 import net.typho.crucible.ide_data.IDELibraryPathType
 import net.typho.crucible.ide_data.IDEModuleData
-import net.typho.crucible.property.PropertyContainer
 import net.typho.crucible.source.CompileTask
 import net.typho.crucible.source.JarTask
 import net.typho.crucible.source.JavaExecTask
@@ -31,7 +30,7 @@ class SimpleModule(
     @JvmField
     val dependencies = Dependencies(repositories)
     lateinit var compileTask: CompileTask
-    val shallowIDEData by lazyProperty {
+    val shallowIDEData by lazyProperty(IDEModuleData.CODEC) {
         IDEModuleData(
             externalName = id,
             id = id,
@@ -39,7 +38,7 @@ class SimpleModule(
             externalConfigPath = CrucibleWrapper.projectRoot,
             moduleFileDirectoryPath = sourceInputFolder()
         )
-    }.finalizeOnRead()
+    }
 
     fun repositories(action: Repositories.() -> Unit) = action(repositories)
 

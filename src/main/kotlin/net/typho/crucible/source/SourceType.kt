@@ -1,7 +1,6 @@
 package net.typho.crucible.source
 
 import net.typho.crucible.Module
-import net.typho.crucible.SimpleModule
 import net.typho.crucible.Named
 import net.typho.crucible.ide_data.IDESourceType
 import net.typho.crucible.property.PropertyContainer

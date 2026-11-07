@@ -14,7 +14,7 @@ abstract class ProjectScriptType(
     private val fileName: String,
     private val baseClass: KClass<*>? = null
 ) : PropertyContainer() {
-    val defaultImports by listProperty<String>().finalizeOnRead()
+    val defaultImports by listProperty<String>().fallback(listOf())
     var compilationConfig = ScriptCompilationConfiguration {
         displayName(name)
         fileExtension("kts")
