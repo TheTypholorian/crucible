@@ -1,7 +1,6 @@
 package net.typho.crucible.ide_data
 
 import net.typho.crucible.Crucible
-import net.typho.crucible.script.AbstractProjectConfig
 import net.typho.crucible.task.InternalTask
 import net.typho.crucible.task.Task
 import net.typho.crucible.wrapper.CrucibleWrapper
@@ -33,7 +32,7 @@ object RefreshIDETask : Task<Unit>(), InternalTask {
                         group = task.group
                     ) }
             ),
-            Crucible.loadedScripts.keys.toList()
+            Crucible.scriptFiles.keys.toList()
         )
 
         Crucible.ideInfoFile.parent.createDirectories()
@@ -41,7 +40,7 @@ object RefreshIDETask : Task<Unit>(), InternalTask {
 
         Crucible.scriptInfoFile.parent.createDirectories()
         ObjectOutputStream(Crucible.scriptInfoFile.outputStream()).use {
-            it.writeObject(Crucible.loadedScripts.values.toList())
+            it.writeObject(Crucible.scriptFiles.values.toList())
         }
     }
 }

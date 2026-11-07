@@ -17,11 +17,15 @@ class Dependencies(
     fun add(
         groupId: String,
         artifactId: String,
-        version: String? = null
+        version: String? = null,
+        classifier: String? = null,
+        extension: String? = null
     ) = add(ArtifactCoords(
         groupId,
         artifactId,
-        version ?: Crucible.fallbackDependencyVersions["$groupId:$artifactId"] ?: throw NullPointerException("No version specified for $groupId:$artifactId, and no fallback version specified in ${Crucible.dependencyVersionsFile()}")
+        version ?: Crucible.getDependencyVersion(groupId, artifactId),
+        classifier,
+        extension
     ))
 
     fun kotlin(module: String, version: String? = null) = add(

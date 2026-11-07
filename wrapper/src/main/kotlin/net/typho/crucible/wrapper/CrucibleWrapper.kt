@@ -9,14 +9,13 @@ import java.util.Properties
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.io.path.Path
-import kotlin.io.path.createTempFile
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import kotlin.io.path.name
 import kotlin.io.path.outputStream
 
 object CrucibleWrapper {
-    fun loadConfig(path: Path, overwrite: Boolean = true) {
+    fun loadProperties(path: Path, overwrite: Boolean = true) {
         if (path.exists()) {
             val properties = Properties()
             path.inputStream().use { properties.load(it) }
@@ -44,14 +43,14 @@ object CrucibleWrapper {
     val projectPropertiesFile = projectRoot.resolve("crucible.properties")
 
     init {
-        loadConfig(projectPropertiesFile, false)
+        loadProperties(projectPropertiesFile, false)
     }
 
     @JvmField
     val globalCacheFolder = System.getProperty("crucible.global_cache_folder")?.let { Path(it) } ?: Path(System.getProperty("user.home"), ".crucible")
 
     init {
-        loadConfig(globalCacheFolder.resolve("crucible.properties"), false)
+        loadProperties(globalCacheFolder.resolve("crucible.properties"), false)
     }
 
     @JvmField

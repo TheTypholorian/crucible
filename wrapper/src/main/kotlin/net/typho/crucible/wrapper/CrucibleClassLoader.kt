@@ -19,7 +19,7 @@ object CrucibleClassLoader : URLClassLoader(
     CrucibleClassLoader::class.java.classLoader
 ) {
     @JvmField
-    val sources = mutableListOf<ArtifactPointer<Path>>()
+    val sources = mutableListOf<Path>()
 
     fun addSources(repositories: List<URI>, coords: ArtifactCoords): LookupResult<ArtifactPointer<Path>> {
         val pointer = MavenUtil.cachedLookup(
@@ -28,7 +28,7 @@ object CrucibleClassLoader : URLClassLoader(
             repositories,
             CrucibleDownloadListener
         )
-        pointer.value?.let { sources.add(it) } ?: warn("Sources for $coords not found")
+        pointer.value?.let { sources.add(it.artifact) } ?: warn("Sources for $coords not found")
         return pointer
     }
 
